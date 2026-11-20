@@ -78,9 +78,9 @@ The rules are enforced in the UI and again in every API route. The middleware al
 
 | Username | Password | Role |
 | --- | --- | --- |
-| `admin` | `Admin@Pusbek2026` | Administrator |
-| `operator` | `Operator@Pusbek2026` | Operator |
-| `viewer` | `Viewer@Pusbek2026` | Viewer |
+| `admin` | `kepo` | Administrator |
+| `operator` | `kepo2` | Operator |
+| `viewer` | `kepo3` | Viewer |
 
 > **Change these immediately after first login** (Manajemen Pengguna → Atur ulang kata sandi), or set
 > `SEED_*_PASSWORD` before the first boot. Credentials are shown on the login page **only** when `NODE_ENV=development`.
