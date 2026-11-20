@@ -1,0 +1,151 @@
+@import "tailwindcss";
+
+@theme {
+  /* Blue — canvas & structure (≈80%) */
+  --color-abyss: #050914;
+  --color-night: #0b1222;
+  --color-deck: #0f1930;
+  --color-line: rgba(59, 130, 246, 0.16);
+  --color-line-strong: rgba(59, 130, 246, 0.3);
+  --color-steel: #3b82f6;
+  --color-cobalt: #1d4ed8;
+  --color-ice: #60a5fa;
+
+  /* Gold — prestige accent (≈15%) */
+  --color-gold: #d4af37;
+  --color-gold-soft: #e8c96d;
+  --color-champagne: #e5c158;
+
+  /* Crimson — precision signal (≈5%) */
+  --color-crimson: #b91c1c;
+  --color-crimson-soft: #dc2626;
+  --color-ember: #c83e3b;
+
+  /* Text */
+  --color-ink: #f8fafc;
+  --color-mist: #94a3b8;
+  --color-haze: #64748b;
+
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Playfair Display", ui-serif, Georgia, serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, SFMono-Regular, monospace;
+
+  --animate-shimmer: shimmer 1.8s ease-in-out infinite;
+  --animate-pulse-live: pulse-live 2.4s ease-out infinite;
+
+  @keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+  @keyframes pulse-live {
+    0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.45); }
+    70% { box-shadow: 0 0 0 7px rgba(220, 38, 38, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
+  }
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  background: var(--color-abyss);
+  color: var(--color-ink);
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "cv11", "ss01";
+}
+
+::selection {
+  background: rgba(212, 175, 55, 0.28);
+  color: var(--color-ink);
+}
+
+@layer components {
+  .glass {
+    background: rgba(15, 25, 48, 0.72);
+    border: 1px solid var(--color-line);
+    backdrop-filter: blur(18px) saturate(140%);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+  }
+
+  .hairline-tricolor {
+    height: 1.5px;
+    background: linear-gradient(90deg, #1d4ed8 0%, #3b82f6 30%, #d4af37 50%, #e8c96d 58%, #b91c1c 85%, #dc2626 100%);
+  }
+
+  .eyebrow {
+    font-family: var(--font-sans);
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+  }
+
+  .tabular {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .focus-ring {
+    outline: none;
+  }
+  .focus-ring:focus-visible {
+    box-shadow: 0 0 0 2px var(--color-abyss), 0 0 0 3.5px rgba(212, 175, 55, 0.75);
+  }
+
+  .skeleton {
+    position: relative;
+    overflow: hidden;
+    background: rgba(59, 130, 246, 0.07);
+    border-radius: 0.5rem;
+  }
+  .skeleton::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(232, 201, 109, 0.08), rgba(148, 163, 184, 0.08), transparent);
+    animation: var(--animate-shimmer);
+  }
+
+  .thin-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(59, 130, 246, 0.28) transparent;
+  }
+}
+
+/* Ambient aerospace background: grid + slow radar sweep. GPU-only transforms. */
+.ambient-grid {
+  background-image:
+    linear-gradient(rgba(59, 130, 246, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(59, 130, 246, 0.045) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 30%, #000 30%, transparent 85%);
+}
+
+.radar-sweep {
+  background: conic-gradient(from 0deg, transparent 0deg, rgba(59, 130, 246, 0.09) 40deg, transparent 70deg);
+  animation: radar-rotate 14s linear infinite;
+  will-change: transform;
+}
+
+@keyframes radar-rotate {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .radar-sweep,
+  .skeleton::after {
+    animation: none;
+  }
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
