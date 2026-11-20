@@ -1,10 +1,11 @@
 import Image from "next/image";
 import { cn } from "@/lib/cn";
+import { withBase } from "@/lib/config";
 
 export function Logo({ size = 40, className, priority }: { size?: number; className?: string; priority?: boolean }) {
   return (
     <Image
-      src="/images/logo-pusbekmatau.png"
+      src={withBase("/images/logo-pusbekmatau.jpg")}
       alt="Lambang Pusbekmatau"
       width={size}
       height={size}

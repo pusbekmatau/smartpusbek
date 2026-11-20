@@ -1,6 +1,6 @@
 /**
  * Public module catalogue — safe to import from client components.
- * It never contains source locations; those live in `data-sources.config.ts` (server-only).
+ * It never contains source locations; those live only in the Apps Script backend (`apps-script/Code.gs`).
  */
 
 export type ModuleGroupId = "monitoring" | "master" | "simmat" | "setriksa";

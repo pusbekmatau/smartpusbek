@@ -56,7 +56,7 @@ export function AppProviders({ user, children }: { user: SessionUser; children: 
 
   useEffect(() => {
     void refreshStatus();
-    const id = setInterval(refreshStatus, 60_000);
+    const id = setInterval(refreshStatus, 120_000);
     return () => clearInterval(id);
   }, [refreshStatus]);
 

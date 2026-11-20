@@ -23,6 +23,15 @@ export interface DataRow {
   values: Record<string, string>;
 }
 
+/** Dataset as consumed by the client-side aggregators (overview, SIMMAT trend). */
+export interface Dataset {
+  slug: string;
+  columns: string[];
+  rows: DataRow[];
+  syncedAt: string;
+  mode: ConnectorMode;
+}
+
 export interface DatasetMeta {
   mode: ConnectorMode;
   syncedAt: string;
