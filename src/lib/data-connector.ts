@@ -8,7 +8,8 @@ import type { ConnectorMode, DataRow } from "./types";
 /**
  * Data connector for the 17 backend modules.
  *
- *  - live  : two-way sync through the Sheets API v4 with a service account.
+ *  - live  : two-way sync, either through the Sheets API v4 with a service account,
+ *            or through the Apps Script web app (APPS_SCRIPT_URL + APPS_SCRIPT_TOKEN).
  *  - local : read via the public CSV export, writes persisted to
  *            data/overlay-store.json and merged on every read.
  *
@@ -55,8 +56,16 @@ interface SourceTable {
 // Mode & credentials
 // ---------------------------------------------------------------------------
 
+type Backend = "api" | "script" | "local";
+
+function backend(): Backend {
+  if (process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL && process.env.GOOGLE_PRIVATE_KEY) return "api";
+  if (process.env.APPS_SCRIPT_URL && process.env.APPS_SCRIPT_TOKEN) return "script";
+  return "local";
+}
+
 export function connectorMode(): ConnectorMode {
-  return process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL && process.env.GOOGLE_PRIVATE_KEY ? "live" : "local";
+  return backend() === "local" ? "local" : "live";
 }
 
 const CACHE_TTL_MS = Math.max(15, Number(process.env.DATA_CACHE_TTL_SECONDS) || 300) * 1000;
@@ -132,6 +141,47 @@ async function fetchGridLive(source: DataSourceConfig): Promise<string[][]> {
     valueRenderOption: "FORMATTED_VALUE",
   });
   return (res.data.values ?? []).map((row) => row.map((cell) => (cell == null ? "" : String(cell))));
+}
+
+// ---------------------------------------------------------------------------
+// Apps Script web app backend (no service account required)
+// ---------------------------------------------------------------------------
+
+async function scriptCall<T>(
+  source: DataSourceConfig,
+  action: "grid" | "cells" | "append" | "delete",
+  payload: Record<string, unknown> = {},
+): Promise<T> {
+  const base = process.env.APPS_SCRIPT_URL as string;
+  const token = process.env.APPS_SCRIPT_TOKEN as string;
+  if (!source.script) throw new Error("source has no Apps Script code");
+
+  let res: Response;
+  if (action === "grid") {
+    const url = new URL(base);
+    url.searchParams.set("action", "grid");
+    url.searchParams.set("src", source.script);
+    url.searchParams.set("gid", String(source.tabId));
+    url.searchParams.set("token", token);
+    res = await fetch(url, { redirect: "follow", cache: "no-store", signal: AbortSignal.timeout(90_000) });
+  } else {
+    res = await fetch(base, {
+      method: "POST",
+      redirect: "follow",
+      cache: "no-store",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ action, token, src: source.script, gid: source.tabId, ...payload }),
+      signal: AbortSignal.timeout(60_000),
+    });
+  }
+  const body = (await res.json().catch(() => null)) as { ok?: boolean; error?: string; data?: T } | null;
+  if (!body || !body.ok) throw new Error(`apps script: ${body?.error ?? `HTTP ${res.status}`}`);
+  return body.data as T;
+}
+
+async function fetchGridScript(source: DataSourceConfig): Promise<string[][]> {
+  const data = await scriptCall<{ title: string; values: unknown[][] }>(source, "grid");
+  return (data.values ?? []).map((row) => row.map((cell) => (cell == null ? "" : String(cell))));
 }
 
 async function fetchCsv(url: string): Promise<string | null> {
@@ -292,7 +342,9 @@ async function loadTable(slug: string, force: boolean): Promise<CacheEntry & { c
     pending = (async () => {
       let grid: string[][];
       try {
-        grid = connectorMode() === "live" ? await fetchGridLive(source) : await fetchGridPublic(source);
+        const mode = backend();
+        grid =
+          mode === "api" ? await fetchGridLive(source) : mode === "script" ? await fetchGridScript(source) : await fetchGridPublic(source);
       } catch (err) {
         if (err instanceof DataSourceError) throw err;
         console.error(`[connector] read failed for ${slug}:`, (err as Error).message);
@@ -342,7 +394,7 @@ function liveWriteError(err: unknown): DataSourceError {
   console.error("[connector] write failed:", (err as Error).message);
   return new DataSourceError(
     "WRITE_FAILED",
-    "Server basis data menolak penulisan pada modul ini. Pastikan akun layanan memiliki hak edit, lalu coba kembali.",
+    "Server basis data menolak penulisan pada modul ini. Pastikan akun layanan/konektor memiliki hak edit, lalu coba kembali.",
     502,
   );
 }
@@ -359,7 +411,20 @@ export async function createRecord(slug: string, input: Record<string, unknown>)
     const values = sanitiseValues(table.columns, input);
     const full: Record<string, string> = Object.fromEntries(table.columns.map((c) => [c, values[c] ?? ""]));
 
-    if (connectorMode() === "live") {
+    if (backend() === "script") {
+      try {
+        const width = Math.max(...table.columnIndex, 0) + 1;
+        const line = Array.from({ length: width }, () => "");
+        table.columns.forEach((c, k) => (line[table.columnIndex[k]] = full[c]));
+        const out = await scriptCall<{ row: number }>(source, "append", { headerRow: table.headerRow, line });
+        invalidate(slug);
+        return { id: `r${out.row}`, values: full };
+      } catch (err) {
+        throw liveWriteError(err);
+      }
+    }
+
+    if (backend() === "api") {
       try {
         const client = await apiClient();
         const title = await resolveTabTitle(source);
@@ -403,7 +468,25 @@ export async function updateRecord(
     const patch = sanitiseValues(current.columns, input);
     const after: DataRow = { id: rowId, values: { ...before.values, ...patch } };
 
-    if (connectorMode() === "live") {
+    if (backend() === "script") {
+      const rowNumber = rowNumberOf(rowId);
+      const { table } = await loadTable(slug, false);
+      if (!rowNumber) throw new DataSourceError("ROW_NOT_FOUND", "Baris data tidak valid.", 404);
+      try {
+        const edits = Object.entries(patch).map(([column, value]) => {
+          const at = table.columns.indexOf(column);
+          if (at === -1) throw new DataSourceError("INVALID_COLUMN", `Kolom "${column}" tidak dikenal pada modul ini.`, 400);
+          return { row: rowNumber, col: table.columnIndex[at] + 1, value };
+        });
+        await scriptCall(source, "cells", { edits });
+        invalidate(slug);
+        return { before, after };
+      } catch (err) {
+        throw liveWriteError(err);
+      }
+    }
+
+    if (backend() === "api") {
       const rowNumber = rowNumberOf(rowId);
       const { table } = await loadTable(slug, false);
       if (!rowNumber) throw new DataSourceError("ROW_NOT_FOUND", "Baris data tidak valid.", 404);
@@ -444,7 +527,19 @@ export async function deleteRecord(slug: string, rowId: string): Promise<DataRow
     const target = current.rows.find((r) => r.id === rowId);
     if (!target) throw new DataSourceError("ROW_NOT_FOUND", "Baris data tidak ditemukan atau telah dihapus.", 404);
 
-    if (connectorMode() === "live") {
+    if (backend() === "script") {
+      const rowNumber = rowNumberOf(rowId);
+      if (!rowNumber) throw new DataSourceError("ROW_NOT_FOUND", "Baris data tidak valid.", 404);
+      try {
+        await scriptCall(source, "delete", { row: rowNumber });
+        invalidate(slug);
+        return target;
+      } catch (err) {
+        throw liveWriteError(err);
+      }
+    }
+
+    if (backend() === "api") {
       const rowNumber = rowNumberOf(rowId);
       if (!rowNumber) throw new DataSourceError("ROW_NOT_FOUND", "Baris data tidak valid.", 404);
       try {
