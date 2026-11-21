@@ -977,3 +977,15 @@ function databaseRoute_(user, method, slug, query, body) {
 
   throw new ApiErr(405, 'METHOD_NOT_ALLOWED', 'Metode tidak didukung.');
 }
+
+/** Jalankan dari editor: kolom + 2 baris contoh tiap modul (untuk merancang Ringkasan Eksekutif). */
+function describeSources() {
+  Object.keys(DATA_SOURCES).forEach(function (slug) {
+    try {
+      var rt = readTable_(slug);
+      var cols = rt.table.columns;
+      Logger.log('## ' + slug + ' [' + rt.table.rows.length + '] ' + cols.slice(0, 40).join(' | '));
+      rt.table.rows.slice(0, 2).forEach(function (r) { Logger.log('   ' + JSON.stringify(r.values).slice(0, 500)); });
+    } catch (err) { Logger.log('## GAGAL ' + slug + ' — ' + (err && err.message ? err.message : err)); }
+  });
+}

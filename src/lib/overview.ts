@@ -1,3 +1,4 @@
+import { buildExecutive } from "./executive";
 import { MODULE_GROUPS, MODULES } from "./modules";
 import { aggregate, numericColumns, preferredDimensions, profileColumns, sumColumn } from "./stats";
 import type { Dataset, OverviewResponse } from "./types";
@@ -103,6 +104,7 @@ export async function buildOverview(load: DatasetLoader, force: boolean): Promis
       comparison,
     },
     highlights,
+    executive: buildExecutive(bySlug),
   };
 }
 
