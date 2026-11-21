@@ -1,5 +1,5 @@
-import { BarChart3, Database, LayoutDashboard, Radar, ShieldCheck, Workflow, type LucideIcon } from "lucide-react";
-import { PAGES, getModule, getPage } from "./modules";
+import { Archive, ClipboardCheck, Inbox, LayoutDashboard, Send, ShieldCheck, type LucideIcon } from "lucide-react";
+import { PAGES, SECTORS, getModule, getPage, type SectorId } from "./modules";
 import type { Role } from "./types";
 
 export interface NavLink {
@@ -16,20 +16,22 @@ export interface NavSection {
   roles?: Role[];
 }
 
-const links = (group: string): NavLink[] =>
-  PAGES.filter((p) => p.group === group).map((p) => ({ href: `/dashboard/${p.slug}`, label: p.title }));
+const links = (sector: SectorId): NavLink[] =>
+  PAGES.filter((p) => p.sector === sector).map((p) => ({ href: `/dashboard/${p.slug}`, label: p.title }));
+
+const SECTOR_ICONS: Record<SectorId, LucideIcon> = { penerimaan: Inbox, pemeriksaan: ClipboardCheck, penyaluran: Send, arsip: Archive };
 
 export const NAVIGATION: NavSection[] = [
   { id: "overview", label: "Ringkasan Eksekutif", icon: LayoutDashboard, href: "/dashboard" },
-  { id: "monitoring", label: "Monitoring", icon: Radar, links: links("monitoring") },
-  { id: "master", label: "Master Data & Penerimaan", icon: Database, links: links("master") },
-  {
-    id: "simmat",
-    label: "SIMMAT (2021–2026)",
-    icon: BarChart3,
-    links: [...links("simmat"), { href: "/dashboard/simmat-comparison", label: "Komparasi Tren 2021–2026" }],
-  },
-  { id: "setriksa", label: "Integrasi Setriksa", icon: Workflow, links: links("setriksa") },
+  ...SECTORS.map((sector): NavSection => ({
+    id: sector.id,
+    label: sector.label,
+    icon: SECTOR_ICONS[sector.id],
+    links:
+      sector.id === "arsip"
+        ? [...links(sector.id), { href: "/dashboard/simmat-comparison", label: "Komparasi Tren 2021–2026" }]
+        : links(sector.id),
+  })),
   {
     id: "admin",
     label: "Administrasi Sistem",
