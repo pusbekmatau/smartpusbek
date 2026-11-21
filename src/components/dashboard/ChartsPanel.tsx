@@ -189,6 +189,11 @@ type SelectHandler = (column: string, value: string) => void;
 
 /** Slices/bars of the "Lainnya" bucket mix several values, so they cannot be drilled into. */
 const clickable = (label: unknown): label is string => typeof label === "string" && label !== OTHERS_LABEL;
+/** Category label of a clicked recharts element (bar item or pie sector). */
+const labelOf = (d: unknown): unknown => {
+  const x = d as { payload?: { label?: unknown }; label?: unknown; name?: unknown } | null;
+  return x?.payload?.label ?? x?.label ?? x?.name;
+};
 const dim = (selected: ChartSelection | null, column: string | null, label: string) =>
   selected && selected.column === column && selected.value.toLowerCase() !== label.toLowerCase() ? 0.3 : 1;
 
@@ -257,7 +262,7 @@ function ManualChart({ columns, rows, selected, onSelect }: { columns: string[];
           <ResponsiveContainer>
             {kind === "pie" ? (
               <PieChart>
-                <Pie data={data} dataKey="value" nameKey="label" innerRadius="48%" outerRadius="85%" paddingAngle={2} stroke="none" cursor="pointer" onClick={(d) => activeDimension && clickable(d?.name) && onSelect(activeDimension, d.name as string)} {...ANIM}>
+                <Pie data={data} dataKey="value" nameKey="label" innerRadius="48%" outerRadius="85%" paddingAngle={2} stroke="none" cursor="pointer" onClick={(d) => activeDimension && clickable(labelOf(d)) && onSelect(activeDimension, labelOf(d) as string)} {...ANIM}>
                   {data.map((d, i) => (
                     <Cell key={i} fill={PIE_SERIES[i % PIE_SERIES.length]} fillOpacity={dim(selected, activeDimension, d.label)} />
                   ))}
@@ -290,7 +295,7 @@ function ManualChart({ columns, rows, selected, onSelect }: { columns: string[];
                 <XAxis dataKey="label" {...AXIS} tickFormatter={(v: string) => truncateLabel(v)} />
                 <YAxis {...AXIS} width={52} tickFormatter={formatCompact} />
                 <Tooltip content={GlassTooltip} cursor={{ fill: "rgba(59,130,246,0.06)" }} />
-                <Bar dataKey="value" name={metricLabel} radius={[5, 5, 0, 0]} cursor="pointer" onClick={(d) => activeDimension && clickable(d?.label) && onSelect(activeDimension, d.label as string)} {...ANIM}>
+                <Bar dataKey="value" name={metricLabel} radius={[5, 5, 0, 0]} cursor="pointer" onClick={(d) => activeDimension && clickable(labelOf(d)) && onSelect(activeDimension, labelOf(d) as string)} {...ANIM}>
                   {data.map((d, i) => (
                     <Cell key={i} fill={PIE_SERIES[i % PIE_SERIES.length]} fillOpacity={dim(selected, activeDimension, d.label) * 0.95} />
                   ))}
@@ -322,7 +327,7 @@ function AutoChart({ rows, dimension, selected, onSelect }: { rows: DataRow[]; d
         <ResponsiveContainer>
           {useDonut ? (
             <PieChart>
-              <Pie data={data} dataKey="value" nameKey="label" innerRadius="52%" outerRadius="86%" paddingAngle={2} stroke="none" cursor="pointer" onClick={(d) => clickable(d?.name) && onSelect(dimension, d.name as string)} {...ANIM}>
+              <Pie data={data} dataKey="value" nameKey="label" innerRadius="52%" outerRadius="86%" paddingAngle={2} stroke="none" cursor="pointer" onClick={(d) => clickable(labelOf(d)) && onSelect(dimension, labelOf(d) as string)} {...ANIM}>
                 {data.map((d, i) => (
                   <Cell key={i} fill={PIE_SERIES[i % PIE_SERIES.length]} fillOpacity={dim(selected, dimension, d.label)} />
                 ))}
@@ -336,7 +341,7 @@ function AutoChart({ rows, dimension, selected, onSelect }: { rows: DataRow[]; d
               <XAxis type="number" {...AXIS} tickFormatter={formatCompact} />
               <YAxis type="category" dataKey="label" {...AXIS} width={92} interval={0} tickFormatter={(v: string) => truncateLabel(v, 14)} />
               <Tooltip content={GlassTooltip} cursor={{ fill: "rgba(59,130,246,0.06)" }} />
-              <Bar dataKey="value" name="Jumlah entri" radius={[0, 5, 5, 0]} cursor="pointer" onClick={(d) => clickable(d?.label) && onSelect(dimension, d.label as string)} {...ANIM}>
+              <Bar dataKey="value" name="Jumlah entri" radius={[0, 5, 5, 0]} cursor="pointer" onClick={(d) => clickable(labelOf(d)) && onSelect(dimension, labelOf(d) as string)} {...ANIM}>
                 {data.map((d, i) => (
                   <Cell key={i} fill={PIE_SERIES[i % PIE_SERIES.length]} fillOpacity={dim(selected, dimension, d.label)} />
                 ))}
