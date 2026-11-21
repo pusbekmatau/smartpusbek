@@ -379,7 +379,7 @@ export class ForkyEngine {
   }
 
   /** Jalankan transisi lengkap. Tidak melakukan apa-apa bila transisi lain masih berjalan. */
-  async run({ label, curtain, onCovered, passMs = 720 }: ForkyRunOptions): Promise<void> {
+  async run({ label, curtain, onCovered, passMs = 1600 }: ForkyRunOptions): Promise<void> {
     if (this.busy) return;
     this.busy = true;
     try {
