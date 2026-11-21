@@ -23,7 +23,7 @@ export default function HomePage() {
             href={user ? "/dashboard" : "/login"}
             className="focus-ring rounded-lg border border-line-strong px-4 py-2 text-xs text-ink transition hover:border-gold/50"
           >
-            {user ? "Buka Command Center" : "Masuk"}
+            {user ? "Panel Dashboard" : "Masuk"}
           </Link>
         </div>
       </header>

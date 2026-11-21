@@ -9,7 +9,7 @@ export default function NotFound() {
       <Logo size={64} />
       <p className="eyebrow text-gold-soft">Kode 404</p>
       <h1 className="font-display text-3xl text-ink">Koordinat tidak ditemukan</h1>
-      <p className="max-w-md text-sm text-mist">Halaman atau modul data yang Anda tuju tidak tersedia pada Command Center.</p>
+      <p className="max-w-md text-sm text-mist">Halaman atau modul data yang Anda tuju tidak tersedia pada Monitoring Center.</p>
       <Link href="/dashboard" className="focus-ring mt-2 rounded-lg border border-line-strong px-4 py-2 text-sm text-ink hover:border-gold/50">
         Kembali ke Ringkasan Eksekutif
       </Link>

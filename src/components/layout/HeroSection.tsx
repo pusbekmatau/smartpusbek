@@ -33,7 +33,7 @@ export function HeroSection({ authenticated }: { authenticated: boolean }) {
 
           <motion.h1 {...fadeUp(0.15)} className="mt-7 font-display text-[2.6rem] leading-[1.05] font-semibold tracking-tight text-ink sm:text-6xl lg:text-[4.4rem]">
             SMART PUSBEKMATAU<span className="text-gold">:</span>
-            <span className="mt-3 block text-[0.52em] leading-tight font-medium text-mist">Central Command &amp; Integration System</span>
+            <span className="mt-3 block text-[0.52em] leading-tight font-medium text-mist">Central Monitoring &amp; Integration System</span>
           </motion.h1>
 
           <motion.div {...fadeUp(0.28)} className="mt-7 flex items-center gap-4">
@@ -54,7 +54,7 @@ export function HeroSection({ authenticated }: { authenticated: boolean }) {
                 href={ctaHref}
                 className="focus-ring group inline-flex h-12 items-center gap-3 rounded-xl bg-gradient-to-b from-gold-soft to-gold px-6 text-sm font-semibold text-abyss shadow-[0_14px_40px_-14px_rgba(212,175,55,0.7)] transition hover:brightness-105"
               >
-                Masuk ke Command Center
+                Masuk ke Monitoring Center
                 <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
               </Link>
             </Magnetic>

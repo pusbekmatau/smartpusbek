@@ -5,12 +5,12 @@ import { withBase } from "@/lib/config";
 export function Logo({ size = 40, className, priority }: { size?: number; className?: string; priority?: boolean }) {
   return (
     <Image
-      src={withBase("/images/logo-pusbekmatau.jpg")}
+      src={withBase("/images/logo-pusbekmatau.png")}
       alt="Lambang Pusbekmatau"
       width={size}
-      height={size}
+      height={Math.round((size * 640) / 611)}
       priority={priority}
-      className={cn("shrink-0 select-none drop-shadow-[0_6px_18px_rgba(212,175,55,0.18)]", className)}
+      className={cn("shrink-0 select-none object-contain drop-shadow-[0_6px_18px_rgba(212,175,55,0.18)]", className)}
     />
   );
 }

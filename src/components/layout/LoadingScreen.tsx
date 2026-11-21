@@ -4,7 +4,7 @@ import { PillarBar } from "@/components/ui/PillarBar";
 /** Branded loading state shown while server components resolve. */
 export function LoadingScreen() {
   return (
-    <div className="flex min-h-[60vh] flex-col items-center justify-center gap-6" role="status" aria-label="Memuat Command Center">
+    <div className="flex min-h-[60vh] flex-col items-center justify-center gap-6" role="status" aria-label="Memuat Monitoring Center">
       <div className="relative">
         <div aria-hidden className="radar-sweep absolute -inset-10 rounded-full" />
         <Logo size={88} />

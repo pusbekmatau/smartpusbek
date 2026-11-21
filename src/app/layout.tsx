@@ -9,7 +9,7 @@ import { MotionProvider } from "@/components/ui/MotionProvider";
 
 export const metadata: Metadata = {
   title: {
-    default: "SMART PUSBEKMATAU — Central Command & Integration System",
+    default: "SMART PUSBEKMATAU — Central Monitoring & Integration System",
     template: "%s · SMART PUSBEKMATAU",
   },
   description:
