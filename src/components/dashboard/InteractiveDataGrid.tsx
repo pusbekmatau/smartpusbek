@@ -41,7 +41,8 @@ import { ApiError, apiFetch } from "@/lib/api-client";
 import { cn } from "@/lib/cn";
 import { exportCsv, exportXlsx } from "@/lib/export";
 import { formatNumber } from "@/lib/format";
-import { compareValues } from "@/lib/stats";
+import { compareValues, matchesBucket, preferredDimensions, profileColumns } from "@/lib/stats";
+import { PIE_SERIES } from "./chart-theme";
 import type { ConnectorMode, DataRow } from "@/lib/types";
 import { AddRecordModal } from "./AddRecordModal";
 import { CellEditor, type CommitIntent } from "./CellEditor";
@@ -56,6 +57,9 @@ interface GridProps {
   onStructuralChange: () => void;
   permissions: { create: boolean; update: boolean; delete: boolean; export: boolean };
   initialQuery?: string;
+  /** Filter pushed from a chart click: only rows whose `column` equals `value` are shown. */
+  externalFilter?: { column: string; value: string } | null;
+  onClearExternalFilter?: () => void;
 }
 
 type CellRef = { rowId: string; column: string };
@@ -78,7 +82,7 @@ const matchesAnyColumn: FilterFn<DataRow> = (row, _columnId, filterValue: string
 
 const cellKey = (c: CellRef) => `${c.rowId}\u0000${c.column}`;
 
-export function InteractiveDataGrid({ slug, title, columns, rows, mode, setRows, onStructuralChange, permissions, initialQuery = "" }: GridProps) {
+export function InteractiveDataGrid({ slug, title, columns, rows, mode, setRows, onStructuralChange, permissions, initialQuery = "", externalFilter = null, onClearExternalFilter }: GridProps) {
   const toast = useToast();
   const [globalFilter, setGlobalFilter] = useState(initialQuery);
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -100,7 +104,7 @@ export function InteractiveDataGrid({ slug, title, columns, rows, mode, setRows,
   const quickFirstRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => setGlobalFilter(initialQuery), [initialQuery]);
-  useEffect(() => setPagination((p) => ({ ...p, pageIndex: 0 })), [globalFilter, columnFilters]);
+  useEffect(() => setPagination((p) => ({ ...p, pageIndex: 0 })), [globalFilter, columnFilters, externalFilter]);
 
   // ------------------------------------------------------------------ table
 
@@ -117,8 +121,28 @@ export function InteractiveDataGrid({ slug, title, columns, rows, mode, setRows,
     return permissions.delete ? [index, ...data, actions] : [index, ...data];
   }, [columns, permissions.delete]);
 
+  const visibleRows = useMemo(
+    () => (externalFilter ? rows.filter((r) => matchesBucket(r.values[externalFilter.column], externalFilter.value)) : rows),
+    [rows, externalFilter],
+  );
+
+  // Low-cardinality text columns (status, jenis, …) get colour chips so they scan quickly.
+  const chipColors = useMemo(() => {
+    const map = new Map<string, Map<string, string>>();
+    for (const p of preferredDimensions(profileColumns(columns, rows))) {
+      if (p.distinct > 8 || p.distinct < 2) continue;
+      const values = new Map<string, string>();
+      for (const r of rows) {
+        const v = (r.values[p.name] ?? "").trim().toLowerCase();
+        if (v && !values.has(v)) values.set(v, PIE_SERIES[values.size % PIE_SERIES.length]);
+      }
+      map.set(p.name, values);
+    }
+    return map;
+  }, [columns, rows]);
+
   const table = useReactTable({
-    data: rows,
+    data: visibleRows,
     columns: columnDefs,
     getRowId: (row) => row.id,
     state: { sorting, columnFilters, globalFilter, pagination },
@@ -308,6 +332,18 @@ export function InteractiveDataGrid({ slug, title, columns, rows, mode, setRows,
 
   return (
     <section className="glass overflow-hidden rounded-2xl">
+      {externalFilter && (
+        <div className="flex flex-wrap items-center gap-3 border-b border-gold/30 bg-gold/10 px-4 py-2.5 text-xs sm:px-5">
+          <span className="text-mist">Filter dari grafik:</span>
+          <span className="rounded-md bg-gold/20 px-2 py-0.5 font-medium text-gold-soft">
+            {externalFilter.column} = {externalFilter.value}
+          </span>
+          <span className="tabular text-mist">{formatNumber(visibleRows.length)} entri</span>
+          <button type="button" onClick={onClearExternalFilter} className="focus-ring ml-auto rounded-md border border-line px-2.5 py-1 text-mist transition hover:border-line-strong hover:text-ink">
+            Hapus filter ✕
+          </button>
+        </div>
+      )}
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-3 border-b border-line px-4 py-4 sm:px-5">
         <div className="relative min-w-56 flex-1 sm:max-w-sm">
@@ -392,7 +428,7 @@ export function InteractiveDataGrid({ slug, title, columns, rows, mode, setRows,
                       key={header.id}
                       scope="col"
                       className={cn(
-                        "border-b border-line bg-night/95 px-3 py-2.5 align-bottom font-medium whitespace-nowrap text-mist backdrop-blur",
+                        "border-b-2 border-gold/40 bg-deck/95 px-3 py-2.5 align-bottom text-[0.72rem] font-semibold tracking-wide whitespace-nowrap text-gold-soft uppercase backdrop-blur",
                         id === SYS_INDEX && "sticky left-0 z-20 w-12 text-right",
                         id === SYS_ACTIONS && "w-12",
                       )}
@@ -467,7 +503,7 @@ export function InteractiveDataGrid({ slug, title, columns, rows, mode, setRows,
             {pageRows.map((row, ri) => {
               const rowFlash = flash[`row:${row.id}`];
               return (
-                <tr key={row.id} className="group/row">
+                <tr key={row.id} className="group/row even:bg-ice/[0.035]">
                   {row.getVisibleCells().map((cell) => {
                     const id = cell.column.id;
                     if (id === SYS_INDEX) {
@@ -511,7 +547,7 @@ export function InteractiveDataGrid({ slug, title, columns, rows, mode, setRows,
                         className={cn(
                           "relative border-b border-line/60 px-3 py-2 align-top text-ink/90 transition-colors",
                           canEdit ? "cursor-cell" : "cursor-default",
-                          !isActive && "group-hover/row:bg-cobalt/[0.06]",
+                          !isActive && "group-hover/row:bg-steel/[0.14]",
                           isEditing && "p-1",
                         )}
                       >
@@ -542,7 +578,20 @@ export function InteractiveDataGrid({ slug, title, columns, rows, mode, setRows,
                           </div>
                         ) : (
                           <span className="relative block max-w-80 truncate" title={value || undefined}>
-                            {value || <span className="text-haze/50">—</span>}
+                            {value && chipColors.get(id)?.get(value.trim().toLowerCase()) ? (
+                              <span
+                                className="inline-block max-w-full truncate rounded-md px-2 py-0.5 text-[0.72rem] font-medium"
+                                style={{
+                                  color: chipColors.get(id)!.get(value.trim().toLowerCase()),
+                                  background: `${chipColors.get(id)!.get(value.trim().toLowerCase())}1f`,
+                                  boxShadow: `inset 0 0 0 1px ${chipColors.get(id)!.get(value.trim().toLowerCase())}40`,
+                                }}
+                              >
+                                {value}
+                              </span>
+                            ) : (
+                              value || <span className="text-haze/50">—</span>
+                            )}
                           </span>
                         )}
                       </td>

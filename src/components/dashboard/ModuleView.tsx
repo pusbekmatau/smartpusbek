@@ -2,13 +2,13 @@
 
 import { Clock, Database, Server } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { useCallback } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useSession } from "@/components/layout/AppProviders";
 import { formatDateTimeWIB, formatNumber } from "@/lib/format";
 import type { ModuleDescriptor } from "@/lib/modules";
 import type { DataRow, DatasetResponse } from "@/lib/types";
 import { useRemote } from "@/lib/use-remote";
-import { ModuleChart } from "./ChartsPanel";
+import { type ChartSelection, ModuleChart } from "./ChartsPanel";
 import { GridSkeleton } from "./GridSkeleton";
 import { InteractiveDataGrid } from "./InteractiveDataGrid";
 import { Reveal } from "./MotionWrappers";
@@ -19,6 +19,13 @@ export function ModuleView({ module }: { module: ModuleDescriptor }) {
   const { can } = useSession();
   const query = useSearchParams().get("q") ?? "";
   const { data, error, loading, reload, setData } = useRemote<DatasetResponse>(`/api/database/${module.slug}`);
+
+  const [selection, setSelection] = useState<ChartSelection | null>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
+  const select = useCallback((column: string, value: string) => {
+    setSelection((cur) => (cur && cur.column === column && cur.value === value ? null : { column, value }));
+    setTimeout(() => gridRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 60);
+  }, []);
 
   const setRows = useCallback(
     (updater: (rows: DataRow[]) => DataRow[]) =>
@@ -56,10 +63,13 @@ export function ModuleView({ module }: { module: ModuleDescriptor }) {
       ) : (
         <div className="space-y-5">
           <Reveal delay={0.08}>
-            <ModuleChart columns={data.columns} rows={data.rows} />
+            <ModuleChart columns={data.columns} rows={data.rows} selected={selection} onSelect={select} />
           </Reveal>
           <Reveal delay={0.16}>
+            <div ref={gridRef} className="scroll-mt-20" />
             <InteractiveDataGrid
+              externalFilter={selection}
+              onClearExternalFilter={() => setSelection(null)}
               slug={module.slug}
               title={module.title}
               columns={data.columns}

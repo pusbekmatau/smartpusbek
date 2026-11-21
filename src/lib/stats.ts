@@ -97,6 +97,16 @@ export function numericColumns(profiles: ColumnProfile[]): ColumnProfile[] {
  * Groups rows by `dimension`; value is row count or the sum of `metric`.
  * Long tails are folded into "Lainnya".
  */
+export const EMPTY_LABEL = "(Kosong)";
+export const OTHERS_LABEL = "Lainnya";
+
+/** True when a raw cell value belongs to the chart bucket `label` (as produced by `aggregate`). */
+export function matchesBucket(raw: string | undefined, label: string): boolean {
+  const v = (raw ?? "").trim();
+  if (label === EMPTY_LABEL) return v === "";
+  return v.toLowerCase() === label.toLowerCase();
+}
+
 export function aggregate(rows: DataRow[], dimension: string, metric: string | null, limit = 10): SeriesPoint[] {
   const buckets = new Map<string, { label: string; value: number }>();
   for (const row of rows) {

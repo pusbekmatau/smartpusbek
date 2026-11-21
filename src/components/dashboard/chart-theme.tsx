@@ -4,10 +4,10 @@ import type { TooltipContentProps } from "recharts";
 import type { NameType, ValueType } from "recharts/types/component/DefaultTooltipContent";
 import { formatNumber } from "@/lib/format";
 
-export const SERIES = ["#3B82F6", "#D4AF37", "#C83E3B", "#60A5FA", "#E5C158", "#1D4ED8", "#94A3B8"] as const;
+export const SERIES = ["#38BDF8", "#FBBF24", "#F43F5E", "#34D399", "#A78BFA", "#FB923C", "#22D3EE", "#F472B6"] as const;
 
-/** Part-to-whole palette: blue-dominant, crimson reserved for the smallest trailing slice. */
-export const PIE_SERIES = ["#3B82F6", "#D4AF37", "#60A5FA", "#1D4ED8", "#E5C158", "#94A3B8", "#C83E3B"] as const;
+/** Part-to-whole / per-category palette: vivid, high-contrast on the dark canvas. */
+export const PIE_SERIES = ["#38BDF8", "#FBBF24", "#34D399", "#F43F5E", "#A78BFA", "#FB923C", "#22D3EE", "#F472B6"] as const;
 
 export const AXIS = {
   stroke: "rgba(148,163,184,0.35)",

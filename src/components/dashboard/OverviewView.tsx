@@ -125,7 +125,7 @@ export function OverviewView() {
 
 function SectorCards({ overview }: { overview: OverviewResponse }) {
   const bySlug = new Map(overview.modules.map((m) => [m.slug, m]));
-  const tones = ["border-t-sky-400", "border-t-gold", "border-t-emerald-400", "border-t-violet-400", "border-t-steel"];
+  const tones = ["#38BDF8", "#FBBF24", "#34D399", "#A78BFA", "#F472B6"];
   return (
     <Stagger className="grid gap-4 lg:grid-cols-2 xl:grid-cols-5" step={0.05}>
       {SECTORS.map((sector, i) => {
@@ -135,14 +135,14 @@ function SectorCards({ overview }: { overview: OverviewResponse }) {
         const pct = mods.length ? (ok.length / mods.length) * 100 : 0;
         return (
           <StaggerItem key={sector.id}>
-            <section className={cn("glass flex h-full flex-col rounded-2xl border-t-2 p-5", tones[i % tones.length])}>
+            <section className="glass flex h-full flex-col rounded-2xl border-t-[3px] p-5" style={{ borderTopColor: tones[i % tones.length], backgroundImage: `linear-gradient(180deg, ${tones[i % tones.length]}18, transparent 45%)` }}>
               <h3 className="font-display text-base font-semibold text-ink">{sector.label}</h3>
               <p className="mt-1 text-xs text-haze">{sector.caption}</p>
-              <p className="tabular mt-4 text-3xl font-semibold text-ink">
+              <p className="tabular mt-4 text-3xl font-semibold" style={{ color: tones[i % tones.length] }}>
                 {formatNumber(records)} <span className="text-sm font-normal text-mist">entri</span>
               </p>
               <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/10">
-                <div className="h-full rounded-full bg-gold" style={{ width: `${pct}%` }} />
+                <div className="h-full rounded-full" style={{ width: `${pct}%`, background: tones[i % tones.length] }} />
               </div>
               <p className="mt-2 text-[0.7rem] text-mist">
                 {ok.length} dari {mods.length} sheet terbaca
