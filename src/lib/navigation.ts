@@ -1,4 +1,4 @@
-import { Archive, ClipboardCheck, Inbox, LayoutDashboard, Send, ShieldCheck, type LucideIcon } from "lucide-react";
+import { Archive, ClipboardCheck, FileInput, Inbox, LayoutDashboard, Send, ShieldCheck, type LucideIcon } from "lucide-react";
 import { PAGES, SECTORS, getModule, getPage, type SectorId } from "./modules";
 import type { Role } from "./types";
 
@@ -19,7 +19,7 @@ export interface NavSection {
 const links = (sector: SectorId): NavLink[] =>
   PAGES.filter((p) => p.sector === sector).map((p) => ({ href: `/dashboard/${p.slug}`, label: p.title }));
 
-const SECTOR_ICONS: Record<SectorId, LucideIcon> = { penerimaan: Inbox, pemeriksaan: ClipboardCheck, penyaluran: Send, arsip: Archive };
+const SECTOR_ICONS: Record<SectorId, LucideIcon> = { penerimaan: Inbox, pemeriksaan: ClipboardCheck, penyaluran: Send, mitra: FileInput, arsip: Archive };
 
 export const NAVIGATION: NavSection[] = [
   { id: "overview", label: "Ringkasan Eksekutif", icon: LayoutDashboard, href: "/dashboard" },

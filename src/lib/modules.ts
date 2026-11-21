@@ -68,7 +68,7 @@ export function modulesInGroup(group: ModuleGroupId): ModuleDescriptor[] {
 
 export const SIMMAT_MODULES = modulesInGroup("simmat");
 
-export type SectorId = "penerimaan" | "pemeriksaan" | "penyaluran" | "arsip";
+export type SectorId = "penerimaan" | "pemeriksaan" | "penyaluran" | "mitra" | "arsip";
 
 export interface Sector {
   id: SectorId;
@@ -77,21 +77,22 @@ export interface Sector {
 }
 
 export const SECTORS: readonly Sector[] = [
-  { id: "penerimaan", label: "Sektor Penerimaan", caption: "IP penerimaan, sub transit, garansi" },
-  { id: "pemeriksaan", label: "Sektor Pemeriksaan", caption: "Setriksa, BSPM, dan FMS" },
-  { id: "penyaluran", label: "Sektor Penyaluran", caption: "Monitoring 2026, mitra, dan Dalang" },
+  { id: "penerimaan", label: "Data IP dan BSPM", caption: "Master IP Penerimaan dan Master BSPM" },
+  { id: "pemeriksaan", label: "Data Gudang Sambung", caption: "Warranty, sub transit, Setriksa, dan FMS" },
+  { id: "penyaluran", label: "Sektor Penyaluran", caption: "Monitoring 2026 dan Master Dalang" },
+  { id: "mitra", label: "Data Form dari Mitra", caption: "Rekapan laporan mitra 2024–2026" },
   { id: "arsip", label: "SIMMAT & Arsip", caption: "SIMMAT 2021–2026 dan Monitoring 2025" },
 ] as const;
 
 const SECTOR_BY_SLUG: Record<string, SectorId> = {
   "master-ip-penerimaan": "penerimaan",
-  "data-sub-transit": "penerimaan",
-  "data-warranty": "penerimaan",
+  "master-bspm": "penerimaan",
+  "data-warranty": "pemeriksaan",
+  "data-sub-transit": "pemeriksaan",
   "data-setriksa": "pemeriksaan",
   "ip-bspm-setlurmat": "pemeriksaan",
-  "master-bspm": "pemeriksaan",
   "data-fms": "pemeriksaan",
-  "rekapan-mitra": "penyaluran",
+  "rekapan-mitra": "mitra",
   "master-dalang": "penyaluran",
   "monitoring-2025": "arsip",
 };
