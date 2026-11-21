@@ -156,7 +156,7 @@ export function Topbar({ onOpenMenu }: { onOpenMenu: () => void }) {
       : { tone: "live" as const, label: "Server terhubung" };
 
   return (
-    <header className="sticky top-0 z-20 border-b border-line bg-abyss/80 backdrop-blur-xl">
+    <header className="sticky top-0 z-20 border-b border-line bg-abyss/95">
       <div className="hairline-tricolor" />
       <div className="flex h-16 items-center gap-3 px-4 sm:px-6">
         <button onClick={onOpenMenu} className="focus-ring rounded-lg p-2 text-mist hover:text-ink lg:hidden" aria-label="Buka navigasi">

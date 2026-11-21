@@ -428,7 +428,7 @@ export function InteractiveDataGrid({ slug, title, columns, rows, mode, setRows,
                       key={header.id}
                       scope="col"
                       className={cn(
-                        "border-b-2 border-gold/40 bg-deck/95 px-3 py-2.5 align-bottom text-[0.72rem] font-semibold tracking-wide whitespace-nowrap text-gold-soft uppercase backdrop-blur",
+                        "border-b-2 border-gold/40 bg-deck/95 px-3 py-2.5 align-bottom text-[0.72rem] font-semibold tracking-wide whitespace-nowrap text-gold-soft uppercase",
                         id === SYS_INDEX && "sticky left-0 z-20 w-12 text-right",
                         id === SYS_ACTIONS && "w-12",
                       )}
