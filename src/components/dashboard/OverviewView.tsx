@@ -7,7 +7,7 @@ import { EyebrowBadge } from "@/components/ui/EyebrowBadge";
 import { StatusDot } from "@/components/ui/StatusDot";
 import { cn } from "@/lib/cn";
 import { formatCompact, formatDateTimeWIB, formatNumber } from "@/lib/format";
-import { MODULE_GROUPS } from "@/lib/modules";
+import { MODULE_GROUPS, MODULES, SECTORS, hrefForModule, sectorOf } from "@/lib/modules";
 import type { OverviewResponse } from "@/lib/types";
 import { useRemote } from "@/lib/use-remote";
 import { OverviewCharts } from "./ChartsPanel";
@@ -51,6 +51,7 @@ export function OverviewView() {
         </div>
       ) : (
         <div className="space-y-6">
+          <SectorCards overview={data} />
           <KpiCards overview={data} />
           <OverviewCharts overview={data} />
 
@@ -119,5 +120,48 @@ export function OverviewView() {
         </div>
       )}
     </>
+  );
+}
+
+function SectorCards({ overview }: { overview: OverviewResponse }) {
+  const bySlug = new Map(overview.modules.map((m) => [m.slug, m]));
+  const tones = ["border-t-sky-400", "border-t-gold", "border-t-emerald-400", "border-t-steel"];
+  return (
+    <Stagger className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4" step={0.05}>
+      {SECTORS.map((sector, i) => {
+        const mods = MODULES.filter((m) => sectorOf(m) === sector.id).map((m) => ({ m, o: bySlug.get(m.slug) }));
+        const ok = mods.filter((x) => x.o?.status === "ok");
+        const records = ok.reduce((s, x) => s + (x.o?.records ?? 0), 0);
+        const pct = mods.length ? (ok.length / mods.length) * 100 : 0;
+        return (
+          <StaggerItem key={sector.id}>
+            <section className={cn("glass flex h-full flex-col rounded-2xl border-t-2 p-5", tones[i % tones.length])}>
+              <h3 className="font-display text-base font-semibold text-ink">{sector.label}</h3>
+              <p className="mt-1 text-xs text-haze">{sector.caption}</p>
+              <p className="tabular mt-4 text-3xl font-semibold text-ink">
+                {formatNumber(records)} <span className="text-sm font-normal text-mist">entri</span>
+              </p>
+              <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/10">
+                <div className="h-full rounded-full bg-gold" style={{ width: `${pct}%` }} />
+              </div>
+              <p className="mt-2 text-[0.7rem] text-mist">
+                {ok.length} dari {mods.length} sheet terbaca
+              </p>
+              <ul className="mt-4 space-y-1.5 border-t border-line pt-3">
+                {mods.slice(0, 5).map(({ m, o }) => (
+                  <li key={m.slug}>
+                    <Link href={hrefForModule(m.slug)} className="flex items-center justify-between gap-2 text-xs text-mist hover:text-ink">
+                      <span className="truncate">{m.tabLabel && m.group === "monitoring" ? `2026 · ${m.tabLabel}` : m.title}</span>
+                      <span className="tabular text-haze">{o?.status === "ok" ? formatCompact(o.records) : "—"}</span>
+                    </Link>
+                  </li>
+                ))}
+                {mods.length > 5 && <li className="text-[0.7rem] text-haze">+{mods.length - 5} sheet lainnya</li>}
+              </ul>
+            </section>
+          </StaggerItem>
+        );
+      })}
+    </Stagger>
   );
 }
