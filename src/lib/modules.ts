@@ -28,7 +28,15 @@ export const MODULE_GROUPS: readonly ModuleGroup[] = [
 
 export const MODULES: readonly ModuleDescriptor[] = [
   { slug: "monitoring-2025", title: "Monitoring 2025", group: "monitoring", year: 2025, description: "Rekam pemantauan kegiatan materiel tahun anggaran 2025." },
-  { slug: "monitoring-2026", title: "Monitoring 2026", group: "monitoring", year: 2026, description: "Rekam pemantauan kegiatan materiel tahun anggaran 2026." },
+  { slug: "monitoring-2026", title: "Monitoring 2026 · IP GPP", group: "monitoring", year: 2026, description: "Rekam pemantauan kegiatan materiel tahun anggaran 2026 (tab IP GPP)." },
+  { slug: "monitoring-2026-dashboard", title: "Monitoring 2026 · Dashboard Monitoring", group: "monitoring", year: 2026, description: "Tab DASHBOARD MONITORING pada workbook Monitoring 2026." },
+  { slug: "monitoring-2026-kontrol-takah", title: "Monitoring 2026 · Kontrol Takah", group: "monitoring", year: 2026, description: "Tab KONTROL TAKAH pada workbook Monitoring 2026." },
+  { slug: "monitoring-2026-progress-buka-takah", title: "Monitoring 2026 · Progress Buka Takah", group: "monitoring", year: 2026, description: "Tab PROGRESS BUKA TAKAH 2026 pada workbook Monitoring 2026." },
+  { slug: "monitoring-2026-ip-salur", title: "Monitoring 2026 · IP Salur", group: "monitoring", year: 2026, description: "Tab IP SALUR pada workbook Monitoring 2026." },
+  { slug: "monitoring-2026-bspm-salur", title: "Monitoring 2026 · BSPM Salur", group: "monitoring", year: 2026, description: "Tab BSPM SALUR pada workbook Monitoring 2026." },
+  { slug: "monitoring-2026-ip-p3k", title: "Monitoring 2026 · IP P3K", group: "monitoring", year: 2026, description: "Tab IP P3K pada workbook Monitoring 2026." },
+  { slug: "monitoring-2026-bspm-rpc", title: "Monitoring 2026 · BSPM RPC", group: "monitoring", year: 2026, description: "Tab BSPM RPC pada workbook Monitoring 2026." },
+  { slug: "monitoring-2026-bspm-gpp", title: "Monitoring 2026 · BSPM GPP", group: "monitoring", year: 2026, description: "Tab BSPM GPP pada workbook Monitoring 2026." },
   { slug: "master-dalang", title: "Master Dalang", group: "master", description: "Data induk pengendalian dan perencanaan materiel." },
   { slug: "master-ip-penerimaan", title: "Master IP Penerimaan", group: "master", description: "Data induk instruksi penerimaan materiel." },
   { slug: "rekapan-mitra", title: "Rekapan Mitra 2024–2026", group: "master", description: "Rekapitulasi laporan mitra periode 2024 hingga 2026." },

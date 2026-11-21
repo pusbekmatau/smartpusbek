@@ -3,14 +3,14 @@
 > **Centre of Excellence** · *Cepat, Tepat, Teliti, dan Aman*
 
 Executive Data Intelligence & Command Center for Pusbekmatau (Pusat Pembekalan Materiel TNI AU).
-It unifies 17 backend data modules (Monitoring, Master Data & Penerimaan, SIMMAT 2021–2026, Integrasi Setriksa)
+It unifies 25 data modules (Monitoring, Master Data & Penerimaan, SIMMAT 2021–2026, Integrasi Setriksa)
 behind one role-based interface: an executive overview, adaptive charts and a data grid that you can edit in place.
 
 The site is **static** and is published on **GitHub Pages**. Login, reading and writing the Google Spreadsheets,
 user management and the audit log run in a **Google Apps Script Web App** (`apps-script/Code.gs`).
 
 ```
-Browser (GitHub Pages, static Next.js)  ──POST /exec──▶  Apps Script Web App  ──▶  17 Google Spreadsheets
+Browser (GitHub Pages, static Next.js)  ──POST /exec──▶  Apps Script Web App  ──▶  Google Spreadsheets
         token in localStorage                            verifies token + role      + DB sheet (USERS, AUDIT)
 ```
 

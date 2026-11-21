@@ -3,7 +3,7 @@
  *
  * Situs di GitHub Pages hanya statis. Semua yang butuh "server" dikerjakan di sini:
  *   - login + sesi bertanda tangan (HMAC), peran ADMIN / OPERATOR / VIEWER
- *   - baca / tambah / ubah / hapus baris pada 17 modul data (spreadsheet Google)
+ *   - baca / tambah / ubah / hapus baris pada 25 modul data (spreadsheet Google)
  *   - manajemen pengguna dan log audit (disimpan di spreadsheet DB yang dibuat otomatis)
  *
  * Cara pasang: lihat apps-script/README.md. Ringkas:
@@ -19,10 +19,18 @@
 // Konfigurasi
 // ---------------------------------------------------------------------------
 
-/** slug -> { id: ID spreadsheet, tab: gid tab, title } — sama dengan katalog modul di situs. */
+/** slug -> { id: ID spreadsheet, tab: gid tab, title } — sama dengan katalog modul di situs (src/lib/modules.ts). */
 var DATA_SOURCES = {
   'monitoring-2025': { id: '1KtuqQzsME8pzQZtMwb09c5FXsRrvmmfHYRrnFNSjcdw', tab: 1023878405, title: 'Monitoring 2025' },
-  'monitoring-2026': { id: '17hhs_95St19RgG4mqXxIwi6fDdFTf98B', tab: 1217200417, title: 'Monitoring 2026' },
+  'monitoring-2026': { id: '17hhs_95St19RgG4mqXxIwi6fDdFTf98B', tab: 1217200417, title: 'Monitoring 2026 · IP GPP' },
+  'monitoring-2026-dashboard': { id: '17hhs_95St19RgG4mqXxIwi6fDdFTf98B', tab: 1567735890, title: 'Monitoring 2026 · Dashboard Monitoring' },
+  'monitoring-2026-kontrol-takah': { id: '17hhs_95St19RgG4mqXxIwi6fDdFTf98B', tab: 1213873211, title: 'Monitoring 2026 · Kontrol Takah' },
+  'monitoring-2026-progress-buka-takah': { id: '17hhs_95St19RgG4mqXxIwi6fDdFTf98B', tab: 2008522192, title: 'Monitoring 2026 · Progress Buka Takah' },
+  'monitoring-2026-ip-salur': { id: '17hhs_95St19RgG4mqXxIwi6fDdFTf98B', tab: 682766291, title: 'Monitoring 2026 · IP Salur' },
+  'monitoring-2026-bspm-salur': { id: '17hhs_95St19RgG4mqXxIwi6fDdFTf98B', tab: 337755818, title: 'Monitoring 2026 · BSPM Salur' },
+  'monitoring-2026-ip-p3k': { id: '17hhs_95St19RgG4mqXxIwi6fDdFTf98B', tab: 1251734049, title: 'Monitoring 2026 · IP P3K' },
+  'monitoring-2026-bspm-rpc': { id: '17hhs_95St19RgG4mqXxIwi6fDdFTf98B', tab: 310933967, title: 'Monitoring 2026 · BSPM RPC' },
+  'monitoring-2026-bspm-gpp': { id: '17hhs_95St19RgG4mqXxIwi6fDdFTf98B', tab: 1486941389, title: 'Monitoring 2026 · BSPM GPP' },
   'master-dalang': { id: '1uS69sn_7zFOBMp64jMD3gVVmtTCRmGZVn0FQmf13XYU', tab: 0, title: 'Master Dalang' },
   'master-ip-penerimaan': { id: '1asYL_offGbW4Pb6h6byLA4omK2D18sOqhz12Is9t1TQ', tab: 1979618444, title: 'Master IP Penerimaan' },
   'rekapan-mitra': { id: '1x2yp7HccYocWhfu5eU7kte_BIBYfoj5kMYASjb93qaQ', tab: 1222716579, title: 'Rekapan Mitra 2024–2026' },

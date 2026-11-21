@@ -12,7 +12,7 @@ bukan di browser: setiap permintaan membawa token bertanda tangan (HMAC) yang di
    Buka **Log eksekusi**: di sana tertulis kata sandi awal untuk `admin`, `operator`, `viewer`
    (acak, hanya muncul sekali). Catat, lalu ganti lewat menu *Manajemen Pengguna* setelah masuk.
    Setup juga membuat spreadsheet DB `SMART PUSBEKMATAU - DB` (tab USERS dan AUDIT) di Drive akun yang sama — jangan dihapus atau dibagikan.
-3. (Opsional) Jalankan **`checkSources`** untuk memastikan akun ini bisa membuka 17 spreadsheet sumber.
+3. (Opsional) Jalankan **`checkSources`** untuk memastikan akun ini bisa membuka semua spreadsheet sumber.
 4. **Deploy → Deployment baru → Jenis: Aplikasi web**
    - Jalankan sebagai: **Saya**
    - Yang memiliki akses: **Siapa saja**
@@ -32,6 +32,6 @@ Setiap kali `Code.gs` diubah: **Deploy → Kelola deployment → ✏️ → Vers
 - ID spreadsheet ada di `Code.gs` (repo). ID saja tidak memberi akses ke data, tetapi jika repo publik, jangan
   membagikan spreadsheet sumber lewat "siapa saja yang punya link".
 - Batas Apps Script untuk akun Google biasa: ±90 menit total waktu eksekusi/hari dan ±30 eksekusi bersamaan.
-  Ringkasan Eksekutif membuka 17 modul sekaligus (di-cache 5 menit); modul yang sangat besar bisa terasa lambat.
+  Ringkasan Eksekutif membuka 25 modul sekaligus (di-cache 5 menit); modul yang sangat besar bisa terasa lambat.
 - Nilai yang diedit lewat situs ditulis seperti ketikan manual di Sheets (angka tetap jadi angka). Teks yang diawali
   `= + - @` atau angka 0 di depan disimpan sebagai teks agar tidak jadi rumus / kehilangan nol.
