@@ -91,6 +91,8 @@ export interface SeriesPoint {
   value: number;
 }
 
+import type { ExecutiveSummary } from "./executive";
+
 export interface OverviewResponse {
   generatedAt: string;
   mode: ConnectorMode;
@@ -105,6 +107,7 @@ export interface OverviewResponse {
     comparison: { label: string; y2025: number; y2026: number }[];
   };
   highlights: { slug: string; title: string; column: string; total: number; average: number }[];
+  executive: ExecutiveSummary;
 }
 
 export interface SystemStatus {
