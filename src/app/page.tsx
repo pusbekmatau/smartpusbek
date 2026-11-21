@@ -1,12 +1,14 @@
+"use client";
+
 import Link from "next/link";
 import { Footer } from "@/components/layout/Footer";
 import { HeroSection } from "@/components/layout/HeroSection";
 import { AmbientBackground } from "@/components/ui/AmbientBackground";
 import { Logo } from "@/components/ui/Logo";
-import { getSession } from "@/lib/auth";
+import { useStoredUser } from "@/lib/session-client";
 
-export default async function HomePage() {
-  const user = await getSession();
+export default function HomePage() {
+  const user = useStoredUser();
   return (
     <div className="flex min-h-dvh flex-col">
       <AmbientBackground />

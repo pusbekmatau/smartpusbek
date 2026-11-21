@@ -1,8 +1,9 @@
-import "server-only";
-import { connectorMode, loadDataset, type Dataset } from "./data-connector";
 import { MODULE_GROUPS, MODULES } from "./modules";
 import { aggregate, numericColumns, preferredDimensions, profileColumns, sumColumn } from "./stats";
-import type { OverviewResponse } from "./types";
+import type { Dataset, OverviewResponse } from "./types";
+
+/** Loads one module; resolves to `null` when the module is unavailable. */
+export type DatasetLoader = (slug: string, force: boolean) => Promise<Dataset | null>;
 
 type Loaded = { slug: string; dataset: Dataset | null };
 
@@ -12,14 +13,10 @@ function pickComparisonDimension(a: Dataset, b: Dataset): string | null {
   return dimsA.find((p) => dimsB.has(p.name.toLowerCase()))?.name ?? null;
 }
 
-export async function buildOverview(force: boolean): Promise<OverviewResponse> {
+export async function buildOverview(load: DatasetLoader, force: boolean): Promise<OverviewResponse> {
   const loaded: Loaded[] = await Promise.all(
     MODULES.map(async (m) => {
-      try {
-        return { slug: m.slug, dataset: await loadDataset(m.slug, { force }) };
-      } catch {
-        return { slug: m.slug, dataset: null };
-      }
+      return { slug: m.slug, dataset: await load(m.slug, force) };
     }),
   );
   const bySlug = new Map(loaded.map((l) => [l.slug, l.dataset]));
@@ -89,7 +86,7 @@ export async function buildOverview(force: boolean): Promise<OverviewResponse> {
   const ok = modules.filter((m) => m.status === "ok");
   return {
     generatedAt: new Date().toISOString(),
-    mode: connectorMode(),
+    mode: "live",
     totals: {
       modules: modules.length,
       available: ok.length,
@@ -118,16 +115,12 @@ export interface SimmatTrendResponse {
 }
 
 /** Cross-year comparison for SIMMAT: record volume, shared numeric metrics, and a shared category breakdown. */
-export async function buildSimmatTrend(force: boolean): Promise<SimmatTrendResponse> {
+export async function buildSimmatTrend(load: DatasetLoader, force: boolean): Promise<SimmatTrendResponse> {
   const simmat = MODULES.filter((m) => m.group === "simmat");
   type Entry = { module: (typeof simmat)[number]; dataset: Dataset | null };
   const loaded: Entry[] = await Promise.all(
     simmat.map(async (m): Promise<Entry> => {
-      try {
-        return { module: m, dataset: await loadDataset(m.slug, { force }) };
-      } catch {
-        return { module: m, dataset: null };
-      }
+      return { module: m, dataset: await load(m.slug, force) };
     }),
   );
   const available = loaded.filter((l): l is Entry & { dataset: Dataset } => l.dataset !== null);
