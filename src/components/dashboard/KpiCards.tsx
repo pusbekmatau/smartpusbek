@@ -56,7 +56,7 @@ export function KpiCards({ overview }: { overview: OverviewResponse }) {
           <StaggerItem key={kpi.label}>
             <GlowCard className="h-full p-5">
               <div className="absolute inset-x-0 top-0 h-[3px] rounded-t-2xl" style={{ background: `linear-gradient(90deg, transparent, ${kpi.color}, transparent)` }} />
-              <div className="pointer-events-none absolute -top-10 -right-10 size-32 rounded-full opacity-20 blur-2xl" style={{ background: kpi.color }} />
+              <div className="pointer-events-none absolute -top-10 -right-10 size-32 rounded-full opacity-20" style={{ background: `radial-gradient(circle, ${kpi.color}, transparent 70%)` }} />
               <div className="flex items-start justify-between">
                 <p className="text-xs font-medium text-mist">{kpi.label}</p>
                 <span className="rounded-lg border p-2" style={{ background: `${kpi.color}22`, borderColor: `${kpi.color}55` }}>

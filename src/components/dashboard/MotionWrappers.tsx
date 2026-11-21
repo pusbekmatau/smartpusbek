@@ -11,8 +11,8 @@ const EASE = [0.22, 1, 0.36, 1] as const;
 export function Reveal({ delay = 0, className, children, ...rest }: HTMLMotionProps<"div"> & { delay?: number }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 18, filter: "blur(8px)" }}
-      animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+      initial={{ opacity: 0, y: 18 }}
+      animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.7, delay, ease: EASE }}
       className={className}
       {...rest}
@@ -40,8 +40,8 @@ export function StaggerItem({ className, children }: { className?: string; child
     <motion.div
       className={className}
       variants={{
-        hidden: { opacity: 0, y: 16, filter: "blur(6px)" },
-        show: { opacity: 1, y: 0, filter: "blur(0px)", transition: { duration: 0.6, ease: EASE } },
+        hidden: { opacity: 0, y: 16 },
+        show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: EASE } },
       }}
     >
       {children}

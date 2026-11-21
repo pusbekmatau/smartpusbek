@@ -126,7 +126,7 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
 export function Sidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClose: () => void }) {
   return (
     <>
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-72 border-r border-line bg-night/90 backdrop-blur-xl lg:block">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-72 border-r border-line bg-night/95 lg:block">
         <SidebarBody />
       </aside>
       <AnimatePresence>
