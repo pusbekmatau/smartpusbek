@@ -141,8 +141,8 @@ function SectorCards({ overview }: { overview: OverviewResponse }) {
               <p className="tabular mt-4 text-3xl font-semibold" style={{ color: tones[i % tones.length] }}>
                 {formatNumber(records)} <span className="text-sm font-normal text-mist">entri</span>
               </p>
-              <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/10">
-                <div className="h-full rounded-full" style={{ width: `${pct}%`, background: tones[i % tones.length] }} />
+              <div className="mt-3 h-2 overflow-hidden border border-line bg-white/5">
+                <div className="dither-fill h-full" style={{ width: `${pct}%`, backgroundColor: tones[i % tones.length] }} />
               </div>
               <p className="mt-2 text-[0.7rem] text-mist">
                 {ok.length} dari {mods.length} sheet terbaca

@@ -136,9 +136,9 @@ function buildPages(): ModulePage[] {
       if (seen.has(key)) continue;
       seen.add(key);
       const meta = MULTI_PAGES[key];
-      pages.push({ ...meta, group: m.group, sector: sectorOf(m), kind: key === "monitoring" ? "workbook" : key === "simmat" ? "years" : "static", tabs: MODULES.filter((x) => x.group === key && x.tabLabel) });
+      pages.push({ ...meta, group: m.group, sector: sectorOf(m), kind: key === "monitoring" ? "workbook" : "years", tabs: MODULES.filter((x) => x.group === key && x.tabLabel) });
     } else {
-      pages.push({ slug: m.slug, title: m.title, group: m.group, sector: sectorOf(m), description: m.description, kind: m.slug === "monitoring-2025" ? "workbook" : "single", tabs: [m] });
+      pages.push({ slug: m.slug, title: m.title, group: m.group, sector: sectorOf(m), description: m.description, kind: "workbook", tabs: [m] });
     }
   }
   return pages;

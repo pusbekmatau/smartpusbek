@@ -1,12 +1,20 @@
 @import "tailwindcss";
 
 @theme {
+  /* Blueprint: near-square corners everywhere */
+  --radius-sm: 1px;
+  --radius-md: 2px;
+  --radius-lg: 2px;
+  --radius-xl: 3px;
+  --radius-2xl: 3px;
+  --radius-3xl: 4px;
+
   /* Blue — canvas & structure (≈80%) */
-  --color-abyss: #050914;
-  --color-night: #0b1222;
-  --color-deck: #0f1930;
-  --color-line: rgba(96, 165, 250, 0.22);
-  --color-line-strong: rgba(96, 165, 250, 0.42);
+  --color-abyss: #06152e;
+  --color-night: #0a2040;
+  --color-deck: #0e2a52;
+  --color-line: rgba(125, 211, 252, 0.26);
+  --color-line-strong: rgba(125, 211, 252, 0.5);
   --color-steel: #38bdf8;
   --color-cobalt: #1d4ed8;
   --color-ice: #7dd3fc;
@@ -50,12 +58,30 @@
 
 html,
 body {
-  background:
-    radial-gradient(ellipse 60% 40% at 90% 0%, rgba(56, 189, 248, 0.10), transparent 70%),
-    radial-gradient(ellipse 50% 40% at 0% 100%, rgba(167, 139, 250, 0.09), transparent 70%),
-    radial-gradient(ellipse 40% 30% at 50% 0%, rgba(251, 191, 36, 0.06), transparent 70%),
-    var(--color-abyss);
+  background-color: var(--color-abyss);
+  /* Blueprint sheet: fine 24px grid + bold 120px grid, fixed behind the content. */
+  background-image:
+    linear-gradient(rgba(125, 211, 252, 0.16) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(125, 211, 252, 0.16) 1px, transparent 1px),
+    linear-gradient(rgba(125, 211, 252, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(125, 211, 252, 0.06) 1px, transparent 1px);
+  background-size: 120px 120px, 120px 120px, 24px 24px, 24px 24px;
+  background-attachment: fixed;
   color: var(--color-ink);
+}
+
+/* Dithered halftone glow in the top-right corner of the page. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: radial-gradient(rgba(125, 211, 252, 0.55) 0.9px, transparent 1.1px);
+  background-size: 5px 5px;
+  -webkit-mask-image: radial-gradient(ellipse 55% 45% at 100% 0%, #000, transparent 70%);
+  mask-image: radial-gradient(ellipse 55% 45% at 100% 0%, #000, transparent 70%);
+  opacity: 0.55;
 }
 
 body {
@@ -71,10 +97,45 @@ body {
 
 @layer components {
   .glass {
-    background: rgba(15, 25, 48, 0.72);
+    position: relative;
+    background: rgba(7, 24, 50, 0.82);
     border: 1px solid var(--color-line);
-    backdrop-filter: blur(18px) saturate(140%);
-    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    border-radius: 2px;
+  }
+  /* Dithered halftone fade in the panel's top-right corner. */
+  .glass::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: inherit;
+    background-image: radial-gradient(rgba(125, 211, 252, 0.5) 0.8px, transparent 1px);
+    background-size: 4px 4px;
+    -webkit-mask-image: linear-gradient(205deg, #000 0%, transparent 32%);
+    mask-image: linear-gradient(205deg, #000 0%, transparent 32%);
+    opacity: 0.5;
+  }
+  /* Drafting-style corner ticks. */
+  .glass::after {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    pointer-events: none;
+    background:
+      linear-gradient(#7dd3fc, #7dd3fc) top left / 11px 2px no-repeat,
+      linear-gradient(#7dd3fc, #7dd3fc) top left / 2px 11px no-repeat,
+      linear-gradient(#7dd3fc, #7dd3fc) top right / 11px 2px no-repeat,
+      linear-gradient(#7dd3fc, #7dd3fc) top right / 2px 11px no-repeat,
+      linear-gradient(#7dd3fc, #7dd3fc) bottom left / 11px 2px no-repeat,
+      linear-gradient(#7dd3fc, #7dd3fc) bottom left / 2px 11px no-repeat,
+      linear-gradient(#7dd3fc, #7dd3fc) bottom right / 11px 2px no-repeat,
+      linear-gradient(#7dd3fc, #7dd3fc) bottom right / 2px 11px no-repeat;
+  }
+
+  /* Dithered (ordered 2x2 checker) fill for bars and meters. */
+  .dither-fill {
+    background-image: conic-gradient(rgba(6, 21, 46, 0.55) 25%, transparent 0 50%, rgba(6, 21, 46, 0.55) 0 75%, transparent 0);
+    background-size: 4px 4px;
   }
 
   .hairline-tricolor {
