@@ -193,6 +193,9 @@ function route_(req) {
     return { ok: true };
   }
 
+  var sh = /^\/api\/sheets\/([^\/]+)$/.exec(path);
+  if (sh && method === 'GET') return sheetsRoute_(user, decodeURIComponent(sh[1]));
+
   var m = /^\/api\/database\/([^\/]+)$/.exec(path);
   if (m) return databaseRoute_(user, method, decodeURIComponent(m[1]), query, body);
 
@@ -632,9 +635,39 @@ var RESTRICTED_MESSAGE =
   'Koneksi ke modul basis data ini sedang dibatasi oleh server. Silakan lakukan sinkronisasi ulang atau hubungi Administrator.';
 
 function source_(slug) {
+  // "<modul>~<gid>" = salah satu sheet lain di workbook yang sama dengan <modul>.
+  var parts = String(slug).split('~');
+  var src = DATA_SOURCES[parts[0]];
+  if (!src) throw new ApiErr(404, 'MODULE_NOT_FOUND', 'Modul data tidak ditemukan.');
+  if (parts.length === 1) return src;
+  var gid = Number(parts[1]);
+  if (parts.length !== 2 || !isFinite(gid)) throw new ApiErr(404, 'MODULE_NOT_FOUND', 'Sheet data tidak ditemukan.');
+  return { id: src.id, tab: gid, title: src.title };
+}
+
+/** Daftar sheet (tab) yang terlihat pada workbook sebuah modul, sesuai urutan di spreadsheet. */
+function sheetsRoute_(user, slug) {
+  requirePermission_(user, 'data:read');
   var src = DATA_SOURCES[slug];
   if (!src) throw new ApiErr(404, 'MODULE_NOT_FOUND', 'Modul data tidak ditemukan.');
-  return src;
+  var key = 'sheets:' + slug;
+  var cache = CacheService.getScriptCache();
+  var hit = cache.get(key);
+  if (hit) return JSON.parse(hit);
+  var out;
+  try {
+    out = {
+      slug: slug,
+      sheets: SpreadsheetApp.openById(src.id).getSheets()
+        .filter(function (sh) { return !sh.isSheetHidden(); })
+        .map(function (sh) { return { gid: sh.getSheetId(), name: sh.getName() }; })
+    };
+  } catch (err) {
+    console.error('[data] gagal membaca daftar sheet ' + slug + ': ' + (err && err.message ? err.message : err));
+    throw new ApiErr(502, 'SOURCE_RESTRICTED', RESTRICTED_MESSAGE);
+  }
+  try { cache.put(key, JSON.stringify(out), 600); } catch (e) { /* opsional */ }
+  return out;
 }
 
 function columnLetter_(index) {
