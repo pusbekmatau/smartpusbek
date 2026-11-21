@@ -253,7 +253,7 @@ export function UserManagementPanel() {
       >
         {dialog?.kind === "delete" && (
           <p className="text-sm text-mist">
-            Akun <span className="text-ink">@{dialog.user.username}</span> ({dialog.user.name}) akan dihapus permanen dan tidak dapat lagi mengakses Command Center.
+            Akun <span className="text-ink">@{dialog.user.username}</span> ({dialog.user.name}) akan dihapus permanen dan tidak dapat lagi mengakses Monitoring Center.
             Pertimbangkan penonaktifan bila akses hanya perlu dibekukan sementara.
           </p>
         )}

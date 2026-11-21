@@ -44,15 +44,15 @@ export const NAVIGATION: NavSection[] = [
   },
 ];
 
-/** Breadcrumb trail for a pathname, e.g. ["Command Center", "SIMMAT (2021–2026)", "SIMMAT 2024"]. */
+/** Breadcrumb trail for a pathname, e.g. ["Monitoring Center", "SIMMAT (2021–2026)", "SIMMAT 2024"]. */
 export function breadcrumbFor(pathname: string): string[] {
-  if (pathname === "/dashboard") return ["Command Center", "Ringkasan Eksekutif"];
+  if (pathname === "/dashboard") return ["Monitoring Center", "Ringkasan Eksekutif"];
   for (const section of NAVIGATION) {
     const link = section.links?.find((l) => l.href === pathname);
-    if (link) return ["Command Center", section.label, link.label];
+    if (link) return ["Monitoring Center", section.label, link.label];
   }
   const slug = pathname.split("/")[2];
   const page = slug ? getPage(slug) : undefined;
   const mod = page ?? (slug ? getModule(slug) : undefined);
-  return mod ? ["Command Center", mod.title] : ["Command Center"];
+  return mod ? ["Monitoring Center", mod.title] : ["Monitoring Center"];
 }

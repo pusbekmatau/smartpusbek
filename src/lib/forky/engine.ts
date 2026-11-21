@@ -39,8 +39,12 @@ const YELLOW = 0xf5b800;
 const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
+export type ForkyMode = "sapu" | "lift";
+
 export interface ForkyRunOptions {
   label: string;
+  /** sapu = lewat kiri→kanan menyapu tirai; lift = berhenti di tengah dan mengangkat layar. */
+  mode?: ForkyMode;
   curtain: HTMLElement;
   /** Dipanggil saat layar tertutup penuh; transisi lanjut setelah promise selesai. */
   onCovered: () => Promise<void>;
@@ -378,24 +382,84 @@ export class ForkyEngine {
     });
   }
 
+  /**
+   * Mode lift, tiga fase: masuk ke tengah → garpu naik/turun sambil menggerakkan tirai → mundur keluar.
+   *  - cover : garpu turun dari atas sambil menurunkan tirai sampai menutup layar.
+   *  - reveal: garpu naik mengangkat tirai (beserta layar lama) ke atas sampai hilang.
+   */
+  private passLift(kind: "cover" | "reveal", curtain: HTMLElement, ms: number): Promise<void> {
+    const edge = this.edgeX();
+    const stopX = -1.9; // peti/garpu tepat di tengah layar
+    const TOP = 4.8;
+    this.cargo.visible = false;
+    this.forklift.position.set(-edge, 0, 0);
+    this.carriage.position.y = kind === "cover" ? TOP : 0;
+    curtain.style.clipPath = kind === "cover" ? "inset(0 0 100% 0)" : "none";
+    curtain.style.transform = "";
+    let prev = -edge;
+    const start = performance.now();
+    return new Promise((resolve) => {
+      const frame = (now: number) => {
+        const elapsed = now - start;
+        const t = Math.min(elapsed / ms, 1);
+        let x = prev;
+        let reversing = false;
+        if (t < 0.3) {
+          x = -edge + (stopX + edge) * easeInOut(t / 0.3);
+        } else if (t < 0.72) {
+          const p = easeInOut((t - 0.3) / 0.42);
+          x = stopX;
+          if (kind === "cover") {
+            this.carriage.position.y = TOP * (1 - p);
+            curtain.style.clipPath = `inset(0 0 ${(1 - p) * 100}% 0)`;
+          } else {
+            this.carriage.position.y = TOP * p;
+            curtain.style.transform = `translateY(${-p * 110}%)`;
+          }
+        } else {
+          const p = easeInOut((t - 0.72) / 0.28);
+          reversing = true;
+          x = stopX + (-edge - stopX) * p;
+          this.carriage.position.y = kind === "cover" ? 0 : TOP * (1 - p);
+          if (kind === "cover") curtain.style.clipPath = "none";
+          else curtain.style.transform = "translateY(-110%)";
+        }
+        const dx = x - prev;
+        prev = x;
+        this.forklift.position.set(x, Math.abs(Math.sin(elapsed * 0.03)) * 0.02, 0);
+        this.forklift.rotation.z = -dx * 0.06;
+        for (const w of this.wheels) w.mesh.rotation.z += (reversing ? 1 : -1) * (Math.abs(dx) / w.radius);
+        this.beaconMat.emissiveIntensity = 1.4 + Math.sin(elapsed * 0.025) * 1.2;
+        this.renderer.render(this.scene, this.camera);
+        if (t < 1) requestAnimationFrame(frame);
+        else resolve();
+      };
+      requestAnimationFrame(frame);
+    });
+  }
+
   /** Jalankan transisi lengkap. Tidak melakukan apa-apa bila transisi lain masih berjalan. */
-  async run({ label, curtain, onCovered, passMs = 1600 }: ForkyRunOptions): Promise<void> {
+  async run({ label, curtain, onCovered, mode = "sapu", passMs = 2400 }: ForkyRunOptions): Promise<void> {
     if (this.busy) return;
     this.busy = true;
     try {
       this.setLabel(label);
       this.canvas.classList.add("is-active");
       curtain.classList.add("is-active");
-      await this.pass("cover", curtain, passMs);
+      if (mode === "lift") await this.passLift("cover", curtain, passMs);
+      else await this.pass("cover", curtain, passMs);
       curtain.style.clipPath = "none";
       this.renderer.clear();
       await onCovered();
-      await this.pass("reveal", curtain, passMs);
+      if (mode === "lift") await this.passLift("reveal", curtain, passMs);
+      else await this.pass("reveal", curtain, passMs);
     } finally {
       this.renderer.clear();
       this.canvas.classList.remove("is-active");
       curtain.classList.remove("is-active");
       curtain.style.clipPath = "";
+      curtain.style.transform = "";
+      this.cargo.visible = true;
       this.busy = false;
     }
   }

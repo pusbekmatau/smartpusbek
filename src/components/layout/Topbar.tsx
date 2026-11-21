@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronRight, LogOut, Menu, RefreshCw, Search, Truck } from "lucide-react";
+import { ArrowUpFromLine, ChevronRight, LogOut, Menu, RefreshCw, Search, Truck } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { RoleBadge } from "@/components/auth/RoleBadge";
@@ -13,7 +13,7 @@ import { formatClockWIB, formatDayWIB } from "@/lib/format";
 import { hrefForModule, MODULES } from "@/lib/modules";
 import { breadcrumbFor } from "@/lib/navigation";
 import { useSession, useSync } from "./AppProviders";
-import { useForky } from "./ForkyTransition";
+import { FORKY_CYCLE, useForky } from "./ForkyTransition";
 
 function WibClock() {
   const [now, setNow] = useState<Date | null>(null);
@@ -226,20 +226,30 @@ export function Topbar({ onOpenMenu }: { onOpenMenu: () => void }) {
   );
 }
 
+const FORKY_INFO = {
+  sapu: { label: "Sapu", title: "Animasi FORKY: mode Sapu (forklift lewat menyapu layar)", Icon: Truck },
+  lift: { label: "Lift", title: "Animasi FORKY: mode Lift (forklift mengangkat layar)", Icon: ArrowUpFromLine },
+  off: { label: "Mati", title: "Animasi FORKY mati", Icon: Truck },
+} as const;
+
+/** Satu tombol, klik untuk berganti: Sapu → Lift → Mati → Sapu. */
 function ForkyToggle() {
-  const { enabled, setEnabled } = useForky();
+  const { setting, setSetting } = useForky();
+  const info = FORKY_INFO[setting];
+  const next = FORKY_CYCLE[(FORKY_CYCLE.indexOf(setting) + 1) % FORKY_CYCLE.length];
   return (
     <button
       type="button"
-      onClick={() => setEnabled(!enabled)}
-      aria-pressed={enabled}
-      title={enabled ? "Animasi forklift FORKY aktif — klik untuk mematikan" : "Animasi forklift FORKY mati — klik untuk menyalakan"}
+      onClick={() => setSetting(next)}
+      title={`${info.title} — klik untuk ganti ke ${FORKY_INFO[next].label}`}
+      aria-label={info.title}
       className={cn(
-        "focus-ring inline-flex size-9 items-center justify-center rounded-lg border transition",
-        enabled ? "border-gold/50 bg-gold/15 text-gold-soft" : "border-line text-haze hover:text-ink",
+        "focus-ring inline-flex h-9 items-center gap-1.5 rounded-lg border px-2.5 text-[0.7rem] font-semibold tracking-wide uppercase transition",
+        setting === "off" ? "border-line text-haze hover:text-ink" : "border-gold/50 bg-gold/15 text-gold-soft",
       )}
     >
-      <Truck className="size-4" aria-hidden />
+      <info.Icon className={cn("size-4", setting === "off" && "opacity-50")} aria-hidden />
+      <span>{info.label}</span>
     </button>
   );
 }

@@ -67,7 +67,7 @@ export function LoginForm({ next, devPanel }: { next: string; devPanel?: React.R
             </motion.div>
             <EyebrowBadge className="mt-6" />
             <h1 className="mt-5 font-display text-[1.7rem] leading-tight font-semibold text-ink">SMART PUSBEKMATAU</h1>
-            <p className="mt-1.5 text-sm text-mist">Autentikasi personel untuk akses Command Center</p>
+            <p className="mt-1.5 text-sm text-mist">Autentikasi personel untuk akses Monitoring Center</p>
             <PillarBar size="sm" className="mt-5 justify-center" delay={0.35} />
           </div>
 
@@ -148,7 +148,7 @@ export function LoginForm({ next, devPanel }: { next: string; devPanel?: React.R
                 </>
               ) : (
                 <>
-                  Masuk ke Command Center
+                  Masuk ke Monitoring Center
                   <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
                 </>
               )}

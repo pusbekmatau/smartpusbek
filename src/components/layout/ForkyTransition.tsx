@@ -3,24 +3,29 @@
 import { usePathname, useRouter } from "next/navigation";
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { BASE_PATH } from "@/lib/config";
-import { ForkyEngine, loadThree, webglAvailable } from "@/lib/forky/engine";
+import { ForkyEngine, loadThree, webglAvailable, type ForkyMode } from "@/lib/forky/engine";
 
 const STORAGE_KEY = "smartpusbek:forky";
 /** Hanya halaman aplikasi ini yang diberi transisi. */
 const ROUTES = /^\/(dashboard|admin)(\/|$)/;
 
+export type ForkySetting = ForkyMode | "off";
+export const FORKY_CYCLE: ForkySetting[] = ["sapu", "lift", "off"];
+
 interface ForkyCtx {
-  enabled: boolean;
-  setEnabled: (on: boolean) => void;
+  setting: ForkySetting;
+  setSetting: (s: ForkySetting) => void;
 }
-const Ctx = createContext<ForkyCtx>({ enabled: false, setEnabled: () => {} });
+const Ctx = createContext<ForkyCtx>({ setting: "off", setSetting: () => {} });
 export const useForky = () => useContext(Ctx);
 
-function readPref(): boolean {
+function readPref(): ForkySetting {
   try {
-    return localStorage.getItem(STORAGE_KEY) !== "off";
+    const v = localStorage.getItem(STORAGE_KEY);
+    if (v === "lift" || v === "off") return v;
+    return "sapu";
   } catch {
-    return true;
+    return "sapu";
   }
 }
 
@@ -45,15 +50,16 @@ export function ForkyTransition({ children }: { children: ReactNode }) {
   const engineRef = useRef<ForkyEngine | null>(null);
   const enginePromise = useRef<Promise<ForkyEngine | null> | null>(null);
   const arrival = useRef<{ path: string; resolve: () => void } | null>(null);
-  const [enabled, setEnabledState] = useState(false);
+  const [setting, setSettingState] = useState<ForkySetting>("off");
+  const enabled = setting !== "off";
   const [label, setLabel] = useState("");
 
-  useEffect(() => setEnabledState(readPref()), []);
+  useEffect(() => setSettingState(readPref()), []);
 
-  const setEnabled = useCallback((on: boolean) => {
-    setEnabledState(on);
+  const setSetting = useCallback((s: ForkySetting) => {
+    setSettingState(s);
     try {
-      localStorage.setItem(STORAGE_KEY, on ? "on" : "off");
+      localStorage.setItem(STORAGE_KEY, s);
     } catch {
       /* opsional */
     }
@@ -134,6 +140,7 @@ export function ForkyTransition({ children }: { children: ReactNode }) {
         setLabel(name);
         await engine.run({
           label: name,
+          mode: setting === "lift" ? "lift" : "sapu",
           curtain: curtainRef.current,
           onCovered: async () => {
             const arrived = new Promise<void>((resolve) => {
@@ -150,10 +157,10 @@ export function ForkyTransition({ children }: { children: ReactNode }) {
 
     document.addEventListener("click", onClick, true);
     return () => document.removeEventListener("click", onClick, true);
-  }, [enabled, pathname, router, getEngine]);
+  }, [enabled, setting, pathname, router, getEngine]);
 
   return (
-    <Ctx.Provider value={{ enabled, setEnabled }}>
+    <Ctx.Provider value={{ setting, setSetting }}>
       {children}
       <div ref={curtainRef} className="forky-curtain" aria-hidden>
         <div className="forky-curtain__inner">

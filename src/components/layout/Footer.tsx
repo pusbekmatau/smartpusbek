@@ -18,7 +18,7 @@ export function Footer() {
         </div>
         <div className="text-xs text-haze md:text-right">
           <p>© {new Date().getFullYear()} Pusat Pembekalan Materiel TNI Angkatan Udara. Hak cipta dilindungi.</p>
-          <p className="tabular mt-1">Central Command & Integration System · {SYSTEM_VERSION}</p>
+          <p className="tabular mt-1">Central Monitoring & Integration System · {SYSTEM_VERSION}</p>
         </div>
       </div>
     </footer>
