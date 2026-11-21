@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronRight, LogOut, Menu, RefreshCw, Search } from "lucide-react";
+import { ChevronRight, LogOut, Menu, RefreshCw, Search, Truck } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { RoleBadge } from "@/components/auth/RoleBadge";
@@ -13,6 +13,7 @@ import { formatClockWIB, formatDayWIB } from "@/lib/format";
 import { hrefForModule, MODULES } from "@/lib/modules";
 import { breadcrumbFor } from "@/lib/navigation";
 import { useSession, useSync } from "./AppProviders";
+import { useForky } from "./ForkyTransition";
 
 function WibClock() {
   const [now, setNow] = useState<Date | null>(null);
@@ -187,6 +188,8 @@ export function Topbar({ onOpenMenu }: { onOpenMenu: () => void }) {
             {connection.label}
           </div>
 
+          <ForkyToggle />
+
           <button
             onClick={sync}
             disabled={syncing}
@@ -220,5 +223,23 @@ export function Topbar({ onOpenMenu }: { onOpenMenu: () => void }) {
         <GlobalSearch />
       </div>
     </header>
+  );
+}
+
+function ForkyToggle() {
+  const { enabled, setEnabled } = useForky();
+  return (
+    <button
+      type="button"
+      onClick={() => setEnabled(!enabled)}
+      aria-pressed={enabled}
+      title={enabled ? "Animasi forklift FORKY aktif — klik untuk mematikan" : "Animasi forklift FORKY mati — klik untuk menyalakan"}
+      className={cn(
+        "focus-ring inline-flex size-9 items-center justify-center rounded-lg border transition",
+        enabled ? "border-gold/50 bg-gold/15 text-gold-soft" : "border-line text-haze hover:text-ink",
+      )}
+    >
+      <Truck className="size-4" aria-hidden />
+    </button>
   );
 }
