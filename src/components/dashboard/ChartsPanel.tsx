@@ -21,7 +21,7 @@ import {
 } from "recharts";
 import { cn } from "@/lib/cn";
 import { formatCompact, formatNumber } from "@/lib/format";
-import { aggregate, numericColumns, preferredDimensions, profileColumns } from "@/lib/stats";
+import { aggregate, numericColumns, OTHERS_LABEL, preferredDimensions, profileColumns } from "@/lib/stats";
 import type { DataRow, OverviewResponse } from "@/lib/types";
 import { AXIS, GlassTooltip, GRID, PIE_SERIES, SERIES, truncateLabel } from "./chart-theme";
 import { Panel } from "./Panel";
@@ -181,7 +181,18 @@ const selectClass =
  * Detects categorical & numeric columns from the live rows and renders an
  * interactive chart. Recomputes on every edit/insert because it derives from `rows`.
  */
-function ManualChart({ columns, rows }: { columns: string[]; rows: DataRow[] }) {
+export interface ChartSelection {
+  column: string;
+  value: string;
+}
+type SelectHandler = (column: string, value: string) => void;
+
+/** Slices/bars of the "Lainnya" bucket mix several values, so they cannot be drilled into. */
+const clickable = (label: unknown): label is string => typeof label === "string" && label !== OTHERS_LABEL;
+const dim = (selected: ChartSelection | null, column: string | null, label: string) =>
+  selected && selected.column === column && selected.value.toLowerCase() !== label.toLowerCase() ? 0.3 : 1;
+
+function ManualChart({ columns, rows, selected, onSelect }: { columns: string[]; rows: DataRow[]; selected: ChartSelection | null; onSelect: SelectHandler }) {
   const profiles = useMemo(() => profileColumns(columns, rows), [columns, rows]);
   const dimensions = useMemo(() => preferredDimensions(profiles), [profiles]);
   const metrics = useMemo(() => numericColumns(profiles), [profiles]);
@@ -246,9 +257,9 @@ function ManualChart({ columns, rows }: { columns: string[]; rows: DataRow[] }) 
           <ResponsiveContainer>
             {kind === "pie" ? (
               <PieChart>
-                <Pie data={data} dataKey="value" nameKey="label" innerRadius="48%" outerRadius="85%" paddingAngle={2} stroke="none" {...ANIM}>
-                  {data.map((_, i) => (
-                    <Cell key={i} fill={PIE_SERIES[i % PIE_SERIES.length]} />
+                <Pie data={data} dataKey="value" nameKey="label" innerRadius="48%" outerRadius="85%" paddingAngle={2} stroke="none" cursor="pointer" onClick={(d) => activeDimension && clickable(d?.name) && onSelect(activeDimension, d.name as string)} {...ANIM}>
+                  {data.map((d, i) => (
+                    <Cell key={i} fill={PIE_SERIES[i % PIE_SERIES.length]} fillOpacity={dim(selected, activeDimension, d.label)} />
                   ))}
                 </Pie>
                 <Tooltip content={GlassTooltip} />
@@ -261,7 +272,12 @@ function ManualChart({ columns, rows }: { columns: string[]; rows: DataRow[] }) 
                 />
               </PieChart>
             ) : kind === "line" ? (
-              <LineChart data={data} margin={{ left: 0, right: 16, top: 8 }}>
+              <LineChart
+                data={data}
+                margin={{ left: 0, right: 16, top: 8 }}
+                style={{ cursor: "pointer" }}
+                onClick={(st) => activeDimension && clickable(st?.activeLabel) && onSelect(activeDimension, st.activeLabel as string)}
+              >
                 <CartesianGrid {...GRID} vertical={false} />
                 <XAxis dataKey="label" {...AXIS} tickFormatter={(v: string) => truncateLabel(v)} />
                 <YAxis {...AXIS} width={52} tickFormatter={formatCompact} />
@@ -274,9 +290,9 @@ function ManualChart({ columns, rows }: { columns: string[]; rows: DataRow[] }) 
                 <XAxis dataKey="label" {...AXIS} tickFormatter={(v: string) => truncateLabel(v)} />
                 <YAxis {...AXIS} width={52} tickFormatter={formatCompact} />
                 <Tooltip content={GlassTooltip} cursor={{ fill: "rgba(59,130,246,0.06)" }} />
-                <Bar dataKey="value" name={metricLabel} radius={[5, 5, 0, 0]} {...ANIM}>
-                  {data.map((_, i) => (
-                    <Cell key={i} fill={i === 0 ? SERIES[1] : SERIES[0]} fillOpacity={i === 0 ? 0.95 : 0.78} />
+                <Bar dataKey="value" name={metricLabel} radius={[5, 5, 0, 0]} cursor="pointer" onClick={(d) => activeDimension && clickable(d?.label) && onSelect(activeDimension, d.label as string)} {...ANIM}>
+                  {data.map((d, i) => (
+                    <Cell key={i} fill={PIE_SERIES[i % PIE_SERIES.length]} fillOpacity={dim(selected, activeDimension, d.label) * 0.95} />
                   ))}
                 </Bar>
               </BarChart>
@@ -296,7 +312,7 @@ function ManualChart({ columns, rows }: { columns: string[]; rows: DataRow[] }) 
 const AUTO_CHARTS = 3;
 
 /** One compact chart for a single dimension: donut when there are few categories, bars otherwise. */
-function AutoChart({ rows, dimension }: { rows: DataRow[]; dimension: string }) {
+function AutoChart({ rows, dimension, selected, onSelect }: { rows: DataRow[]; dimension: string; selected: ChartSelection | null; onSelect: SelectHandler }) {
   const donut = useMemo(() => aggregate(rows, dimension, null, 6), [rows, dimension]);
   const useDonut = donut.length <= 4;
   const data = useMemo(() => (useDonut ? donut : aggregate(rows, dimension, null, 8)), [rows, dimension, useDonut, donut]);
@@ -306,9 +322,9 @@ function AutoChart({ rows, dimension }: { rows: DataRow[]; dimension: string }) 
         <ResponsiveContainer>
           {useDonut ? (
             <PieChart>
-              <Pie data={data} dataKey="value" nameKey="label" innerRadius="52%" outerRadius="86%" paddingAngle={2} stroke="none" {...ANIM}>
-                {data.map((_, i) => (
-                  <Cell key={i} fill={PIE_SERIES[i % PIE_SERIES.length]} />
+              <Pie data={data} dataKey="value" nameKey="label" innerRadius="52%" outerRadius="86%" paddingAngle={2} stroke="none" cursor="pointer" onClick={(d) => clickable(d?.name) && onSelect(dimension, d.name as string)} {...ANIM}>
+                {data.map((d, i) => (
+                  <Cell key={i} fill={PIE_SERIES[i % PIE_SERIES.length]} fillOpacity={dim(selected, dimension, d.label)} />
                 ))}
               </Pie>
               <Tooltip content={GlassTooltip} />
@@ -320,7 +336,11 @@ function AutoChart({ rows, dimension }: { rows: DataRow[]; dimension: string }) 
               <XAxis type="number" {...AXIS} tickFormatter={formatCompact} />
               <YAxis type="category" dataKey="label" {...AXIS} width={92} interval={0} tickFormatter={(v: string) => truncateLabel(v, 14)} />
               <Tooltip content={GlassTooltip} cursor={{ fill: "rgba(59,130,246,0.06)" }} />
-              <Bar dataKey="value" name="Jumlah entri" radius={[0, 5, 5, 0]} fill={SERIES[0]} {...ANIM} />
+              <Bar dataKey="value" name="Jumlah entri" radius={[0, 5, 5, 0]} cursor="pointer" onClick={(d) => clickable(d?.label) && onSelect(dimension, d.label as string)} {...ANIM}>
+                {data.map((d, i) => (
+                  <Cell key={i} fill={PIE_SERIES[i % PIE_SERIES.length]} fillOpacity={dim(selected, dimension, d.label)} />
+                ))}
+              </Bar>
             </BarChart>
           )}
         </ResponsiveContainer>
@@ -333,7 +353,7 @@ function AutoChart({ rows, dimension }: { rows: DataRow[]; dimension: string }) 
  * Shows the few most informative charts automatically; any other column or metric
  * can still be charted by hand through "Grafik manual".
  */
-export function ModuleChart({ columns, rows }: { columns: string[]; rows: DataRow[] }) {
+export function ModuleChart({ columns, rows, selected, onSelect }: { columns: string[]; rows: DataRow[]; selected: ChartSelection | null; onSelect: SelectHandler }) {
   const profiles = useMemo(() => profileColumns(columns, rows), [columns, rows]);
   const dimensions = useMemo(() => preferredDimensions(profiles).filter((d) => d.distinct > 1).slice(0, AUTO_CHARTS), [profiles]);
   const [manual, setManual] = useState(false);
@@ -343,19 +363,19 @@ export function ModuleChart({ columns, rows }: { columns: string[]; rows: DataRo
       {dimensions.length > 0 && (
         <div className={cn("grid gap-4", dimensions.length === 1 ? "" : dimensions.length === 2 ? "lg:grid-cols-2" : "lg:grid-cols-2 xl:grid-cols-3")}>
           {dimensions.map((d) => (
-            <AutoChart key={d.name} rows={rows} dimension={d.name} />
+            <AutoChart key={d.name} rows={rows} dimension={d.name} selected={selected} onSelect={onSelect} />
           ))}
         </div>
       )}
       <div className="flex items-center justify-between gap-3">
         <p className="text-[0.7rem] text-haze">
-          {dimensions.length === 0 ? "Sheet ini belum punya kolom kategori untuk grafik otomatis." : `${formatNumber(rows.length)} entri dianalisis`}
+          {dimensions.length === 0 ? "Sheet ini belum punya kolom kategori untuk grafik otomatis." : `${formatNumber(rows.length)} entri dianalisis · klik batang/irisan untuk menampilkan datanya di tabel`}
         </p>
         <button type="button" onClick={() => setManual((v) => !v)} className="focus-ring rounded-lg border border-line px-3 py-1.5 text-xs text-mist transition hover:border-line-strong hover:text-ink">
           {manual ? "Sembunyikan grafik manual" : "+ Grafik manual"}
         </button>
       </div>
-      {manual && <ManualChart columns={columns} rows={rows} />}
+      {manual && <ManualChart columns={columns} rows={rows} selected={selected} onSelect={onSelect} />}
     </div>
   );
 }

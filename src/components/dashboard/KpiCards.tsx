@@ -13,6 +13,7 @@ interface Kpi {
   caption: string;
   icon: typeof Database;
   accent?: boolean;
+  color: string;
   delta?: number | null;
 }
 
@@ -25,13 +26,14 @@ function buildKpis(o: OverviewResponse): Kpi[] {
   const monitoringDelta = m.y2025.records > 0 && m.y2026.status === "ok" ? ((m.y2026.records - m.y2025.records) / m.y2025.records) * 100 : null;
 
   return [
-    { label: "Total Entri Terintegrasi", value: o.totals.records, caption: `Lintas ${o.totals.available} modul aktif`, icon: Database, accent: true },
-    { label: "Modul Basis Data Daring", value: o.totals.available, suffix: ` / ${o.totals.modules}`, caption: `${o.totals.fields} atribut data terpetakan`, icon: Layers },
+    { label: "Total Entri Terintegrasi", value: o.totals.records, caption: `Lintas ${o.totals.available} modul aktif`, icon: Database, accent: true, color: "#FBBF24" },
+    { label: "Modul Basis Data Daring", value: o.totals.available, suffix: ` / ${o.totals.modules}`, caption: `${o.totals.fields} atribut data terpetakan`, icon: Layers, color: "#38BDF8" },
     {
       label: "Volume SIMMAT",
       value: okYears.reduce((s, y) => s + y.records, 0),
       caption: first && last ? `Pertumbuhan ${first.year}→${last.year}` : "Menunggu data SIMMAT",
       icon: TrendingUp,
+      color: "#34D399",
       delta: simmatGrowth,
     },
     {
@@ -39,6 +41,7 @@ function buildKpis(o: OverviewResponse): Kpi[] {
       value: m.y2026.records,
       caption: `Dibanding 2025: ${m.y2025.records.toLocaleString("id-ID")} entri`,
       icon: Activity,
+      color: "#A78BFA",
       delta: monitoringDelta,
     },
   ];
@@ -52,14 +55,15 @@ export function KpiCards({ overview }: { overview: OverviewResponse }) {
         return (
           <StaggerItem key={kpi.label}>
             <GlowCard className="h-full p-5">
-              {kpi.accent && <div className="absolute -inset-x-5 -top-5 h-px bg-gradient-to-r from-transparent via-gold/70 to-transparent" />}
+              <div className="absolute inset-x-0 top-0 h-[3px] rounded-t-2xl" style={{ background: `linear-gradient(90deg, transparent, ${kpi.color}, transparent)` }} />
+              <div className="pointer-events-none absolute -top-10 -right-10 size-32 rounded-full opacity-20 blur-2xl" style={{ background: kpi.color }} />
               <div className="flex items-start justify-between">
                 <p className="text-xs font-medium text-mist">{kpi.label}</p>
-                <span className="rounded-lg border border-line bg-cobalt/10 p-2">
-                  <Icon className={cn("size-4", kpi.accent ? "text-gold-soft" : "text-ice")} aria-hidden />
+                <span className="rounded-lg border p-2" style={{ background: `${kpi.color}22`, borderColor: `${kpi.color}55` }}>
+                  <Icon className="size-4" style={{ color: kpi.color }} aria-hidden />
                 </span>
               </div>
-              <p className={cn("mt-3 text-3xl font-semibold tracking-tight", kpi.accent ? "text-gold-soft" : "text-ink")}>
+              <p className="mt-3 text-3xl font-semibold tracking-tight" style={{ color: kpi.color }}>
                 <AnimatedCounter value={kpi.value} />
                 {kpi.suffix && <span className="tabular text-lg text-haze">{kpi.suffix}</span>}
               </p>
