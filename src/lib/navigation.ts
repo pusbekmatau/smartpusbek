@@ -1,5 +1,5 @@
 import { BarChart3, Database, LayoutDashboard, Radar, ShieldCheck, Workflow, type LucideIcon } from "lucide-react";
-import { MODULES, getModule } from "./modules";
+import { PAGES, getModule, getPage } from "./modules";
 import type { Role } from "./types";
 
 export interface NavLink {
@@ -17,7 +17,7 @@ export interface NavSection {
 }
 
 const links = (group: string): NavLink[] =>
-  MODULES.filter((m) => m.group === group).map((m) => ({ href: `/dashboard/${m.slug}`, label: m.title }));
+  PAGES.filter((p) => p.group === group).map((p) => ({ href: `/dashboard/${p.slug}`, label: p.title }));
 
 export const NAVIGATION: NavSection[] = [
   { id: "overview", label: "Ringkasan Eksekutif", icon: LayoutDashboard, href: "/dashboard" },
@@ -50,6 +50,7 @@ export function breadcrumbFor(pathname: string): string[] {
     if (link) return ["Command Center", section.label, link.label];
   }
   const slug = pathname.split("/")[2];
-  const mod = slug ? getModule(slug) : undefined;
+  const page = slug ? getPage(slug) : undefined;
+  const mod = page ?? (slug ? getModule(slug) : undefined);
   return mod ? ["Command Center", mod.title] : ["Command Center"];
 }

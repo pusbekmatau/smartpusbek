@@ -10,7 +10,7 @@ import { useToast } from "@/components/ui/Toast";
 import { apiFetch } from "@/lib/api-client";
 import { cn } from "@/lib/cn";
 import { formatClockWIB, formatDayWIB } from "@/lib/format";
-import { MODULES } from "@/lib/modules";
+import { hrefForModule, MODULES } from "@/lib/modules";
 import { breadcrumbFor } from "@/lib/navigation";
 import { useSession, useSync } from "./AppProviders";
 
@@ -54,7 +54,9 @@ function GlobalSearch() {
   );
 
   const go = (slug: string, withQuery: boolean) => {
-    router.push(`/dashboard/${slug}${withQuery && query.trim() ? `?q=${encodeURIComponent(query.trim())}` : ""}`);
+    const href = hrefForModule(slug);
+    const q = withQuery && query.trim() ? `${href.includes("?") ? "&" : "?"}q=${encodeURIComponent(query.trim())}` : "";
+    router.push(`${href}${q}`);
     setQuery("");
     inputRef.current?.blur();
   };
