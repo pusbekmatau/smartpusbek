@@ -125,9 +125,9 @@ export function OverviewView() {
 
 function SectorCards({ overview }: { overview: OverviewResponse }) {
   const bySlug = new Map(overview.modules.map((m) => [m.slug, m]));
-  const tones = ["border-t-sky-400", "border-t-gold", "border-t-emerald-400", "border-t-steel"];
+  const tones = ["border-t-sky-400", "border-t-gold", "border-t-emerald-400", "border-t-violet-400", "border-t-steel"];
   return (
-    <Stagger className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4" step={0.05}>
+    <Stagger className="grid gap-4 lg:grid-cols-2 xl:grid-cols-5" step={0.05}>
       {SECTORS.map((sector, i) => {
         const mods = MODULES.filter((m) => sectorOf(m) === sector.id).map((m) => ({ m, o: bySlug.get(m.slug) }));
         const ok = mods.filter((x) => x.o?.status === "ok");
