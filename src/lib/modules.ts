@@ -68,11 +68,47 @@ export function modulesInGroup(group: ModuleGroupId): ModuleDescriptor[] {
 
 export const SIMMAT_MODULES = modulesInGroup("simmat");
 
+export type SectorId = "penerimaan" | "pemeriksaan" | "penyaluran" | "arsip";
+
+export interface Sector {
+  id: SectorId;
+  label: string;
+  caption: string;
+}
+
+export const SECTORS: readonly Sector[] = [
+  { id: "penerimaan", label: "Sektor Penerimaan", caption: "IP penerimaan, sub transit, garansi" },
+  { id: "pemeriksaan", label: "Sektor Pemeriksaan", caption: "Setriksa, BSPM, dan FMS" },
+  { id: "penyaluran", label: "Sektor Penyaluran", caption: "Monitoring 2026, mitra, dan Dalang" },
+  { id: "arsip", label: "SIMMAT & Arsip", caption: "SIMMAT 2021–2026 dan Monitoring 2025" },
+] as const;
+
+const SECTOR_BY_SLUG: Record<string, SectorId> = {
+  "master-ip-penerimaan": "penerimaan",
+  "data-sub-transit": "penerimaan",
+  "data-warranty": "penerimaan",
+  "data-setriksa": "pemeriksaan",
+  "ip-bspm-setlurmat": "pemeriksaan",
+  "master-bspm": "pemeriksaan",
+  "data-fms": "pemeriksaan",
+  "rekapan-mitra": "penyaluran",
+  "master-dalang": "penyaluran",
+  "monitoring-2025": "arsip",
+};
+
+export function sectorOf(m: ModuleDescriptor): SectorId {
+  if (SECTOR_BY_SLUG[m.slug]) return SECTOR_BY_SLUG[m.slug];
+  if (m.group === "simmat") return "arsip";
+  if (m.group === "monitoring") return "penyaluran";
+  return "arsip";
+}
+
 /** A routable dashboard page: one module, or several modules shown as tabs. */
 export interface ModulePage {
   slug: string;
   title: string;
   group: ModuleGroupId;
+  sector: SectorId;
   description: string;
   tabs: ModuleDescriptor[];
 }
@@ -92,9 +128,9 @@ function buildPages(): ModulePage[] {
       if (seen.has(key)) continue;
       seen.add(key);
       const meta = MULTI_PAGES[key];
-      pages.push({ ...meta, group: m.group, tabs: MODULES.filter((x) => x.group === key && x.tabLabel) });
+      pages.push({ ...meta, group: m.group, sector: sectorOf(m), tabs: MODULES.filter((x) => x.group === key && x.tabLabel) });
     } else {
-      pages.push({ slug: m.slug, title: m.title, group: m.group, description: m.description, tabs: [m] });
+      pages.push({ slug: m.slug, title: m.title, group: m.group, sector: sectorOf(m), description: m.description, tabs: [m] });
     }
   }
   return pages;
