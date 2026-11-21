@@ -181,7 +181,7 @@ const selectClass =
  * Detects categorical & numeric columns from the live rows and renders an
  * interactive chart. Recomputes on every edit/insert because it derives from `rows`.
  */
-export function ModuleChart({ columns, rows }: { columns: string[]; rows: DataRow[] }) {
+function ManualChart({ columns, rows }: { columns: string[]; rows: DataRow[] }) {
   const profiles = useMemo(() => profileColumns(columns, rows), [columns, rows]);
   const dimensions = useMemo(() => preferredDimensions(profiles), [profiles]);
   const metrics = useMemo(() => numericColumns(profiles), [profiles]);
@@ -201,8 +201,8 @@ export function ModuleChart({ columns, rows }: { columns: string[]; rows: DataRo
 
   return (
     <Panel
-      eyebrow="Statistik Modul"
-      title={activeDimension ? `Distribusi ${activeDimension}` : "Statistik Modul"}
+      eyebrow="Grafik Manual"
+      title={activeDimension ? `Distribusi ${activeDimension}` : "Grafik Manual"}
       actions={
         dimensions.length > 0 && (
           <div className="flex flex-wrap items-center gap-2">
@@ -290,5 +290,72 @@ export function ModuleChart({ columns, rows }: { columns: string[]; rows: DataRo
         </p>
       )}
     </Panel>
+  );
+}
+
+const AUTO_CHARTS = 3;
+
+/** One compact chart for a single dimension: donut when there are few categories, bars otherwise. */
+function AutoChart({ rows, dimension }: { rows: DataRow[]; dimension: string }) {
+  const donut = useMemo(() => aggregate(rows, dimension, null, 6), [rows, dimension]);
+  const useDonut = donut.length <= 4;
+  const data = useMemo(() => (useDonut ? donut : aggregate(rows, dimension, null, 8)), [rows, dimension, useDonut, donut]);
+  return (
+    <Panel eyebrow="Statistik" title={`Distribusi ${dimension}`}>
+      <div className="h-56">
+        <ResponsiveContainer>
+          {useDonut ? (
+            <PieChart>
+              <Pie data={data} dataKey="value" nameKey="label" innerRadius="52%" outerRadius="86%" paddingAngle={2} stroke="none" {...ANIM}>
+                {data.map((_, i) => (
+                  <Cell key={i} fill={PIE_SERIES[i % PIE_SERIES.length]} />
+                ))}
+              </Pie>
+              <Tooltip content={GlassTooltip} />
+              <Legend verticalAlign="bottom" wrapperStyle={{ fontSize: 11, color: "#94A3B8" }} formatter={(v: string) => truncateLabel(v, 22)} />
+            </PieChart>
+          ) : (
+            <BarChart data={data} layout="vertical" margin={{ left: 8, right: 16, top: 4 }}>
+              <CartesianGrid {...GRID} horizontal={false} />
+              <XAxis type="number" {...AXIS} tickFormatter={formatCompact} />
+              <YAxis type="category" dataKey="label" {...AXIS} width={92} interval={0} tickFormatter={(v: string) => truncateLabel(v, 14)} />
+              <Tooltip content={GlassTooltip} cursor={{ fill: "rgba(59,130,246,0.06)" }} />
+              <Bar dataKey="value" name="Jumlah entri" radius={[0, 5, 5, 0]} fill={SERIES[0]} {...ANIM} />
+            </BarChart>
+          )}
+        </ResponsiveContainer>
+      </div>
+    </Panel>
+  );
+}
+
+/**
+ * Shows the few most informative charts automatically; any other column or metric
+ * can still be charted by hand through "Grafik manual".
+ */
+export function ModuleChart({ columns, rows }: { columns: string[]; rows: DataRow[] }) {
+  const profiles = useMemo(() => profileColumns(columns, rows), [columns, rows]);
+  const dimensions = useMemo(() => preferredDimensions(profiles).filter((d) => d.distinct > 1).slice(0, AUTO_CHARTS), [profiles]);
+  const [manual, setManual] = useState(false);
+
+  return (
+    <div className="space-y-4">
+      {dimensions.length > 0 && (
+        <div className={cn("grid gap-4", dimensions.length === 1 ? "" : dimensions.length === 2 ? "lg:grid-cols-2" : "lg:grid-cols-2 xl:grid-cols-3")}>
+          {dimensions.map((d) => (
+            <AutoChart key={d.name} rows={rows} dimension={d.name} />
+          ))}
+        </div>
+      )}
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-[0.7rem] text-haze">
+          {dimensions.length === 0 ? "Sheet ini belum punya kolom kategori untuk grafik otomatis." : `${formatNumber(rows.length)} entri dianalisis`}
+        </p>
+        <button type="button" onClick={() => setManual((v) => !v)} className="focus-ring rounded-lg border border-line px-3 py-1.5 text-xs text-mist transition hover:border-line-strong hover:text-ink">
+          {manual ? "Sembunyikan grafik manual" : "+ Grafik manual"}
+        </button>
+      </div>
+      {manual && <ManualChart columns={columns} rows={rows} />}
+    </div>
   );
 }

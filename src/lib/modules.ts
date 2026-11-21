@@ -30,13 +30,13 @@ export const MODULE_GROUPS: readonly ModuleGroup[] = [
 
 export const MODULES: readonly ModuleDescriptor[] = [
   { slug: "monitoring-2025", title: "Monitoring 2025", group: "monitoring", year: 2025, description: "Rekam pemantauan kegiatan materiel tahun anggaran 2025." },
-  { slug: "monitoring-2026", title: "Monitoring 2026 · IP GPP", tabLabel: "IP GPP", group: "monitoring", year: 2026, description: "Rekam pemantauan kegiatan materiel tahun anggaran 2026 (tab IP GPP)." },
   { slug: "monitoring-2026-dashboard", title: "Monitoring 2026 · Dashboard Monitoring", tabLabel: "Dashboard Monitoring", group: "monitoring", year: 2026, description: "Tab DASHBOARD MONITORING pada workbook Monitoring 2026." },
-  { slug: "monitoring-2026-kontrol-takah", title: "Monitoring 2026 · Kontrol Takah", tabLabel: "Kontrol Takah", group: "monitoring", year: 2026, description: "Tab KONTROL TAKAH pada workbook Monitoring 2026." },
   { slug: "monitoring-2026-progress-buka-takah", title: "Monitoring 2026 · Progress Buka Takah", tabLabel: "Progress Buka Takah", group: "monitoring", year: 2026, description: "Tab PROGRESS BUKA TAKAH 2026 pada workbook Monitoring 2026." },
+  { slug: "monitoring-2026-kontrol-takah", title: "Monitoring 2026 · Kontrol Takah", tabLabel: "Kontrol Takah", group: "monitoring", year: 2026, description: "Tab KONTROL TAKAH pada workbook Monitoring 2026." },
   { slug: "monitoring-2026-ip-salur", title: "Monitoring 2026 · IP Salur", tabLabel: "IP Salur", group: "monitoring", year: 2026, description: "Tab IP SALUR pada workbook Monitoring 2026." },
-  { slug: "monitoring-2026-bspm-salur", title: "Monitoring 2026 · BSPM Salur", tabLabel: "BSPM Salur", group: "monitoring", year: 2026, description: "Tab BSPM SALUR pada workbook Monitoring 2026." },
   { slug: "monitoring-2026-ip-p3k", title: "Monitoring 2026 · IP P3K", tabLabel: "IP P3K", group: "monitoring", year: 2026, description: "Tab IP P3K pada workbook Monitoring 2026." },
+  { slug: "monitoring-2026", title: "Monitoring 2026 · IP GPP", tabLabel: "IP GPP", group: "monitoring", year: 2026, description: "Rekam pemantauan kegiatan materiel tahun anggaran 2026 (tab IP GPP)." },
+  { slug: "monitoring-2026-bspm-salur", title: "Monitoring 2026 · BSPM Salur", tabLabel: "BSPM Salur", group: "monitoring", year: 2026, description: "Tab BSPM SALUR pada workbook Monitoring 2026." },
   { slug: "monitoring-2026-bspm-rpc", title: "Monitoring 2026 · BSPM RPC", tabLabel: "BSPM RPC", group: "monitoring", year: 2026, description: "Tab BSPM RPC pada workbook Monitoring 2026." },
   { slug: "monitoring-2026-bspm-gpp", title: "Monitoring 2026 · BSPM GPP", tabLabel: "BSPM GPP", group: "monitoring", year: 2026, description: "Tab BSPM GPP pada workbook Monitoring 2026." },
   { slug: "master-dalang", title: "Master Dalang", group: "master", description: "Data induk pengendalian dan perencanaan materiel." },
@@ -59,7 +59,7 @@ export const MODULES: readonly ModuleDescriptor[] = [
 const MODULE_INDEX = new Map(MODULES.map((m) => [m.slug, m]));
 
 export function getModule(slug: string): ModuleDescriptor | undefined {
-  return MODULE_INDEX.get(slug);
+  return MODULE_INDEX.get(slug.split("~")[0]);
 }
 
 export function modulesInGroup(group: ModuleGroupId): ModuleDescriptor[] {
@@ -111,6 +111,13 @@ export interface ModulePage {
   group: ModuleGroupId;
   sector: SectorId;
   description: string;
+  /**
+   * single   – one data sheet.
+   * static   – several independent modules shown as tabs.
+   * workbook – one spreadsheet; its sheets are listed live (spreadsheet order) as tabs.
+   * years    – one spreadsheet per year (tabs), each of which lists its own sheets.
+   */
+  kind: "single" | "static" | "workbook" | "years";
   tabs: ModuleDescriptor[];
 }
 
@@ -129,9 +136,9 @@ function buildPages(): ModulePage[] {
       if (seen.has(key)) continue;
       seen.add(key);
       const meta = MULTI_PAGES[key];
-      pages.push({ ...meta, group: m.group, sector: sectorOf(m), tabs: MODULES.filter((x) => x.group === key && x.tabLabel) });
+      pages.push({ ...meta, group: m.group, sector: sectorOf(m), kind: key === "monitoring" ? "workbook" : key === "simmat" ? "years" : "static", tabs: MODULES.filter((x) => x.group === key && x.tabLabel) });
     } else {
-      pages.push({ slug: m.slug, title: m.title, group: m.group, sector: sectorOf(m), description: m.description, tabs: [m] });
+      pages.push({ slug: m.slug, title: m.title, group: m.group, sector: sectorOf(m), description: m.description, kind: m.slug === "monitoring-2025" ? "workbook" : "single", tabs: [m] });
     }
   }
   return pages;
