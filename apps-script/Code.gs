@@ -125,6 +125,24 @@ function checkSources() {
   });
 }
 
+/** Jalankan dari editor: daftar sheet (tab) yang terbaca pada tiap spreadsheet sumber. */
+function checkSheets() {
+  var seen = {};
+  Object.keys(DATA_SOURCES).forEach(function (slug) {
+    var id = DATA_SOURCES[slug].id;
+    if (seen[id]) { Logger.log('=     ' + slug + ' — workbook sama dengan ' + seen[id]); return; }
+    seen[id] = slug;
+    try {
+      var names = SpreadsheetApp.openById(id).getSheets()
+        .filter(function (sh) { return !sh.isSheetHidden(); })
+        .map(function (sh) { return sh.getName(); });
+      Logger.log('OK    ' + slug + ' — ' + names.length + ' sheet: ' + names.join(' | '));
+    } catch (err) {
+      Logger.log('GAGAL ' + slug + ' — ' + (err && err.message ? err.message : err));
+    }
+  });
+}
+
 // ---------------------------------------------------------------------------
 // Titik masuk Web App
 // ---------------------------------------------------------------------------
